@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # MediChain — Milestone 1
 
 **Cloud-Based Pharmacy Inventory Management System (Blockchain integration planned for a later milestone)**
@@ -228,3 +229,6 @@ The current architecture keeps future features additive rather than disruptive:
 
 - Blockchain, AI, cloud analytics, barcode scanning, and payments are intentionally **out of scope** for this milestone, per the project brief.
 - Default low-stock threshold is 20 units (see `LOW_STOCK_THRESHOLD` in `models/Medicine.js`) — make this configurable per-pharmacy in a later milestone if needed.
+=======
+# cloud-based-Pharmacy-Inventory-Management
+>>>>>>> 1b307ae6489df2794f75cdcb5f2534d586383250
