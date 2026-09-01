@@ -7,6 +7,13 @@ const rateLimit = require('express-rate-limit');
 
 const authRoutes = require('./routes/authRoutes');
 const medicineRoutes = require('./routes/medicineRoutes');
+const storeRoutes = require('./routes/storeRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const pharmacyRoutes = require('./routes/pharmacyRoutes');
+const medicineCatalogRoutes = require('./routes/medicineCatalogRoutes');
+const inventoryRoutes = require('./routes/inventoryRoutes');
+const saleRoutes = require('./routes/saleRoutes');
+const publicRoutes = require('./routes/publicRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -14,10 +21,24 @@ const app = express();
 // Security headers
 app.use(helmet());
 
-// CORS - restrict to configured client origin
+// CORS - restrict to the configured client origin, plus its 127.0.0.1 equivalent
+// (some browsers/tools resolve "localhost" and "127.0.0.1" as different origins)
+const configuredClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = [configuredClientUrl];
+try {
+  const url = new URL(configuredClientUrl);
+  if (url.hostname === 'localhost') {
+    allowedOrigins.push(`${url.protocol}//127.0.0.1:${url.port}`);
+  } else if (url.hostname === '127.0.0.1') {
+    allowedOrigins.push(`${url.protocol}//localhost:${url.port}`);
+  }
+} catch {
+  // configuredClientUrl wasn't a valid URL - fall back to the single allowed origin above
+}
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -52,6 +73,13 @@ app.get('/api/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/medicines', medicineRoutes);
+app.use('/api/stores', storeRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/pharmacies', pharmacyRoutes);
+app.use('/api/medicine-catalog', medicineCatalogRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/sales', saleRoutes);
+app.use('/api/public', publicRoutes);
 
 // 404 + centralized error handler (must be last)
 app.use(notFound);

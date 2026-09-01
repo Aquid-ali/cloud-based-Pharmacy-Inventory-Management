@@ -26,7 +26,9 @@ const Navbar = ({ onMenuClick }) => {
               {user?.fullName}
             </span>
             <span className="text-[10px] text-[#346560] font-medium leading-none">
-              {user?.role}
+              {user?.role === 'Admin' && (user?.pharmacyId?.name || user?.store?.name)
+                ? user.pharmacyId?.name || user.store?.name
+                : user?.role}
             </span>
           </div>
         </div>

@@ -23,6 +23,11 @@ const errorHandler = (err, req, res, next) => {
     message = `Resource not found with id: ${err.value}`;
   }
 
+  // Multer upload errors (file too large, unexpected field, etc.)
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+  }
+
   // Mongoose duplicate key
   if (err.code === 11000) {
     statusCode = 409;
@@ -36,6 +41,18 @@ const errorHandler = (err, req, res, next) => {
     message = Object.values(err.errors)
       .map((val) => val.message)
       .join(', ');
+  }
+
+  // Server-side diagnostic log - never sent to the client. Only a safe scope
+  // identifier (pharmacyId/storeId) is included, never a token, password, or
+  // full user document, so this is safe to leave on in every environment.
+  const scopeId = req.user?.pharmacyId?._id || req.user?.pharmacyId || req.user?.store?._id || req.user?.store;
+  console.error(
+    `[${new Date().toISOString()}] ${req.method} ${req.originalUrl} -> ${statusCode} ${err.name || 'Error'}: ${message}` +
+      (scopeId ? ` (scope: ${scopeId})` : '')
+  );
+  if (statusCode >= 500 && err.stack) {
+    console.error(err.stack);
   }
 
   res.status(statusCode).json({

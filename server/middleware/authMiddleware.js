@@ -28,7 +28,7 @@ const protect = asyncHandler(async (req, res, next) => {
     let user;
 
     if (getIsConnected()) {
-      user = await User.findById(decoded.id);
+      user = await User.findById(decoded.id).populate('store').populate('pharmacyId');
     } else {
       user = inMemoryUsers.get(decoded.id);
       if (user) {
@@ -51,7 +51,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
 /**
  * Role-based authorization middleware.
- * Usage: authorize('Admin') or authorize('Admin', 'Pharmacist')
+ * Usage: authorize('Admin') or authorize('Admin', 'Customer')
  */
 const authorize = (...roles) => {
   return (req, res, next) => {

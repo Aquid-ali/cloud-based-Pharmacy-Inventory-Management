@@ -6,3 +6,4 @@ export const createMedicine = (payload) => api.post('/medicines', payload);
 export const updateMedicine = (id, payload) => api.put(`/medicines/${id}`, payload);
 export const deleteMedicine = (id) => api.delete(`/medicines/${id}`);
 export const getDashboardStats = () => api.get('/medicines/stats/summary');
+export const importMedicines = (formData, config) => api.post('/medicines/import', formData, config);

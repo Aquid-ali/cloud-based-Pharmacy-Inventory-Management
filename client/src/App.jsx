@@ -1,8 +1,15 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 
+import Landing from './pages/Landing';
+import ContactUs from './pages/info/ContactUs';
+import FAQs from './pages/info/FAQs';
+import PrivacyPolicy from './pages/info/PrivacyPolicy';
+import TermsConditions from './pages/info/TermsConditions';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AdminLogin from './pages/admin/AdminLogin';
+import AdminRegister from './pages/admin/AdminRegister';
 import Dashboard from './pages/Dashboard';
 import MedicineList from './pages/MedicineList';
 import AddMedicine from './pages/AddMedicine';
@@ -11,10 +18,35 @@ import MedicineDetails from './pages/MedicineDetails';
 import NotFound from './pages/NotFound';
 
 import DashboardLayout from './layouts/DashboardLayout';
+import ShopLayout from './layouts/ShopLayout';
 import ProtectedRoute from './components/ProtectedRoute';
+
+// Shop
+import ShopHome from './pages/shop/Home';
+import ShopSearchResults from './pages/shop/SearchResults';
+import ShopMedicineDetail from './pages/shop/MedicineDetail';
+import ShopStores from './pages/shop/Stores';
+import ShopCart from './pages/shop/Cart';
+import ShopCheckout from './pages/shop/Checkout';
+import ShopOrders from './pages/shop/Orders';
+import ShopOrderDetail from './pages/shop/OrderDetail';
+import ShopAccount from './pages/shop/Account';
+
+// Admin: customer orders
+import CustomerOrders from './pages/orders/CustomerOrders';
+
+// Admin: medicine data management (AI enrichment)
+import MedicineDataManagement from './pages/admin/MedicineDataManagement';
+import MedicineReview from './pages/admin/MedicineReview';
+
+// Customer: medicine catalog
+import MedicineSearch from './pages/customer/MedicineSearch';
+import MedicineCatalogDetails from './pages/customer/MedicineDetails';
 
 // Inventory
 import StockManagement from './pages/inventory/StockManagement';
+import AddStock from './pages/inventory/AddStock';
+import ImportMedicines from './pages/inventory/ImportMedicines';
 import Categories from './pages/inventory/Categories';
 import Batches from './pages/inventory/Batches';
 import Manufacturers from './pages/inventory/Manufacturers';
@@ -44,9 +76,7 @@ import Attendance from './pages/employees/Attendance';
 
 // Reports
 import SalesReport from './pages/reports/SalesReport';
-import InventoryReport from './pages/reports/InventoryReport';
 import ProfitAnalysis from './pages/reports/ProfitAnalysis';
-import ExpiryReport from './pages/reports/ExpiryReport';
 import PurchaseReport from './pages/reports/PurchaseReport';
 import TaxReport from './pages/reports/TaxReport';
 
@@ -77,17 +107,58 @@ import ApiKeys from './pages/settings/ApiKeys';
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/contact" element={<ContactUs />} />
+      <Route path="/faqs" element={<FAQs />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsConditions />} />
+
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/register" element={<AdminRegister />} />
+
+      {/* Customer storefront */}
+      <Route
+        element={
+          <ProtectedRoute allowedRoles={['Customer']}>
+            <ShopLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/shop" element={<ShopHome />} />
+        <Route path="/shop/search" element={<ShopSearchResults />} />
+        <Route path="/shop/medicines/:id" element={<ShopMedicineDetail />} />
+        <Route path="/shop/stores" element={<ShopStores />} />
+        <Route path="/shop/cart" element={<ShopCart />} />
+        <Route path="/shop/checkout" element={<ShopCheckout />} />
+        <Route path="/shop/orders" element={<ShopOrders />} />
+        <Route path="/shop/orders/:id" element={<ShopOrderDetail />} />
+        <Route path="/shop/account" element={<ShopAccount />} />
+      </Route>
+
+      {/* Medicine catalog search (MedicineCatalog + Inventory + Pharmacy) is
+          publicly browsable — only cart/purchase actions require sign-in
+          (gated inline on the page itself). Shares ShopLayout's chrome but
+          is intentionally NOT behind ProtectedRoute. */}
+      <Route element={<ShopLayout />}>
+        <Route path="/customer/medicines" element={<MedicineSearch />} />
+        <Route path="/customer/medicines/:id" element={<MedicineCatalogDetails />} />
+      </Route>
 
       <Route
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowedRoles={['Admin']}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/orders" element={<CustomerOrders />} />
+
+        {/* Medicine Data Management (AI enrichment) */}
+        <Route path="/medicine-data" element={<MedicineDataManagement />} />
+        <Route path="/medicine-data/review" element={<MedicineReview />} />
 
         {/* Inventory */}
         <Route path="/medicines" element={<MedicineList />} />
@@ -95,6 +166,8 @@ function App() {
         <Route path="/medicines/edit/:id" element={<EditMedicine />} />
         <Route path="/medicines/:id" element={<MedicineDetails />} />
         <Route path="/inventory/stock" element={<StockManagement />} />
+        <Route path="/inventory/add-stock" element={<AddStock />} />
+        <Route path="/inventory/import" element={<ImportMedicines />} />
         <Route path="/inventory/categories" element={<Categories />} />
         <Route path="/inventory/batches" element={<Batches />} />
         <Route path="/inventory/manufacturers" element={<Manufacturers />} />
@@ -124,9 +197,7 @@ function App() {
 
         {/* Reports */}
         <Route path="/reports/sales" element={<SalesReport />} />
-        <Route path="/reports/inventory" element={<InventoryReport />} />
         <Route path="/reports/profit" element={<ProfitAnalysis />} />
-        <Route path="/reports/expiry" element={<ExpiryReport />} />
         <Route path="/reports/purchase" element={<PurchaseReport />} />
         <Route path="/reports/tax" element={<TaxReport />} />
 
@@ -155,7 +226,6 @@ function App() {
         <Route path="/settings/api-keys" element={<ApiKeys />} />
       </Route>
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

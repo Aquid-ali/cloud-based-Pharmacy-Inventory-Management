@@ -25,7 +25,7 @@ const MedicineDetails = () => {
     const fetchMedicine = async () => {
       try {
         const { data } = await getMedicineById(id);
-        setMedicine(data.data);
+        setMedicine(data.data.medicine);
       } catch (error) {
         toast.error('Failed to load medicine details');
       } finally {
@@ -106,7 +106,7 @@ const MedicineDetails = () => {
             <div className="flex items-center gap-2 text-xs font-semibold text-[#346560] uppercase mb-1">
               <FiDollarSign /> Selling Price
             </div>
-            <p className="text-2xl font-bold text-slate-900">${medicine.sellingPrice?.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-slate-900">₹{medicine.sellingPrice?.toFixed(2)}</p>
           </div>
 
           <div className="p-4 rounded-2xl bg-[#f0f7f6] border border-[#346560]/10">

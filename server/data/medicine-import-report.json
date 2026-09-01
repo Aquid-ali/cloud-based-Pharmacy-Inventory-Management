@@ -1,0 +1,13 @@
+{
+  "totalRows": 11500,
+  "successfullyImported": 7,
+  "skippedExisting": 11493,
+  "skippedInvalid": 0,
+  "duplicateMedicineIds": 0,
+  "invalidReviewRecords": 0,
+  "invalidImageUrls": 0,
+  "missingRequiredFields": 0,
+  "dryRun": true,
+  "generatedAt": "2026-08-12T09:20:13.865Z",
+  "errors": []
+}

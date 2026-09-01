@@ -51,6 +51,11 @@ const medicineSchema = new mongoose.Schema(
       required: [true, 'Selling price is required'],
       min: 0,
     },
+    // Per-medicine low-stock threshold; falls back to LOW_STOCK_THRESHOLD when unset
+    reorderLevel: {
+      type: Number,
+      min: [0, 'Reorder level cannot be negative'],
+    },
     supplier: {
       type: String,
       trim: true,
@@ -71,6 +76,12 @@ const medicineSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    store: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Store',
+      required: true,
+      index: true,
+    },
   },
   { timestamps: true }
 );
@@ -78,17 +89,19 @@ const medicineSchema = new mongoose.Schema(
 // Low stock threshold - kept simple for milestone 1, can be made configurable later
 const LOW_STOCK_THRESHOLD = 20;
 
-medicineSchema.pre('save', function (next) {
+// Shared by the pre-save hook (single create/update) and the bulk CSV import path,
+// which uses insertMany and therefore never triggers 'save' middleware.
+medicineSchema.statics.computeStatus = function ({ quantity, expiryDate, reorderLevel }) {
   const now = new Date();
-  if (this.expiryDate && this.expiryDate < now) {
-    this.status = 'Expired';
-  } else if (this.quantity <= 0) {
-    this.status = 'Out of Stock';
-  } else if (this.quantity <= LOW_STOCK_THRESHOLD) {
-    this.status = 'Low Stock';
-  } else {
-    this.status = 'In Stock';
-  }
+  const threshold = Number.isFinite(reorderLevel) ? reorderLevel : LOW_STOCK_THRESHOLD;
+  if (expiryDate && new Date(expiryDate) < now) return 'Expired';
+  if (quantity <= 0) return 'Out of Stock';
+  if (quantity <= threshold) return 'Low Stock';
+  return 'In Stock';
+};
+
+medicineSchema.pre('save', function (next) {
+  this.status = this.constructor.computeStatus(this);
   next();
 });
 

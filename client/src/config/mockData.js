@@ -39,14 +39,6 @@ export const suppliersData = [
   { id: 4, name: 'Regional Health Supply', contact: 'Sneha Reddy', phone: '+91 66554 43322', email: 'sneha@rhs.com', orders: 8, status: 'Inactive' },
 ];
 
-export const salesHistoryData = [
-  { id: 'INV-1042', date: '2026-08-05', customer: 'Walk-in Customer', items: 3, total: '₹1,245', payment: 'Cash', status: 'Completed' },
-  { id: 'INV-1041', date: '2026-08-05', customer: 'Rahul Mehta', items: 5, total: '₹3,890', payment: 'UPI', status: 'Completed' },
-  { id: 'INV-1040', date: '2026-08-04', customer: 'Anita Desai', items: 2, total: '₹560', payment: 'Card', status: 'Completed' },
-  { id: 'INV-1039', date: '2026-08-04', customer: 'Walk-in Customer', items: 1, total: '₹180', payment: 'Cash', status: 'Completed' },
-  { id: 'INV-1038', date: '2026-08-03', customer: 'Vikram Singh', items: 7, total: '₹5,420', payment: 'UPI', status: 'Completed' },
-];
-
 export const returnsData = [
   { id: 'RET-001', date: '2026-08-04', invoice: 'INV-1035', customer: 'Anita Desai', reason: 'Wrong medicine', amount: '₹320', status: 'Approved' },
   { id: 'RET-002', date: '2026-08-03', invoice: 'INV-1028', customer: 'Rahul Mehta', reason: 'Expired product', amount: '₹150', status: 'Pending' },
@@ -149,12 +141,6 @@ export const bestSellingData = [
   { id: 5, medicine: 'Cetirizine 10mg', sold: 580, revenue: '₹17,400', trend: '+15%' },
 ];
 
-export const posCartItems = [
-  { id: 1, name: 'Paracetamol 500mg', price: 25, qty: 2 },
-  { id: 2, name: 'Amoxicillin 250mg', price: 85, qty: 1 },
-  { id: 3, name: 'Vitamin C 500mg', price: 120, qty: 1 },
-];
-
 export const availabilityData = [
   { id: 1, medicine: 'Paracetamol 500mg', category: 'Pain Relief', stock: 450, status: 'In Stock' },
   { id: 2, medicine: 'Amoxicillin 250mg', category: 'Antibiotics', stock: 45, status: 'Low Stock' },
@@ -170,10 +156,6 @@ export const loyaltyTiers = [
 ];
 
 export const reportSummary = {
-  sales: { total: '₹4,82,350', orders: 342, avgOrder: '₹1,410', growth: '+18%' },
-  inventory: { total: 156, value: '₹12,45,000', lowStock: 8, expired: 3 },
-  profit: { revenue: '₹4,82,350', cost: '₹3,21,400', profit: '₹1,60,950', margin: '33.4%' },
-  expiry: { expiring30: 12, expiring60: 24, expired: 3, value: '₹45,200' },
   purchase: { total: '₹2,85,000', orders: 28, pending: 2, suppliers: 4 },
   tax: { collected: '₹86,823', paid: '₹52,100', net: '₹34,723', rate: '18% GST' },
 };

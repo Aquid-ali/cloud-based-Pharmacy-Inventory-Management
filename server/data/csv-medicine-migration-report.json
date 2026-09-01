@@ -1,0 +1,16 @@
+{
+  "dryRun": false,
+  "medicinesFound": 2,
+  "medicinesProcessed": 2,
+  "pharmaciesCreated": 0,
+  "pharmaciesReused": 1,
+  "pharmaciesBackfilled": 0,
+  "catalogEntriesCreatedBare": 0,
+  "catalogEntriesReused": 2,
+  "catalogEntriesBackfilled": 0,
+  "catalogEntriesLinkedToVerifiedData": 1,
+  "inventoryRecordsCreated": 0,
+  "inventoryRecordsAlreadyExisted": 2,
+  "errors": [],
+  "generatedAt": "2026-08-22T02:36:51.809Z"
+}

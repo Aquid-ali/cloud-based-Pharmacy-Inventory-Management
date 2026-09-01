@@ -42,7 +42,7 @@ const Sidebar = ({ open, onClose }) => {
       )}
 
       <aside
-        className={`fixed z-40 lg:static top-0 left-0 h-full w-64 bg-[#1c3734] text-white transform transition-transform duration-200 lg:translate-x-0 flex flex-col ${
+        className={`fixed z-40 lg:static top-0 left-0 h-full w-72 bg-[#1c3734] text-white transform transition-transform duration-200 lg:translate-x-0 flex flex-col ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -52,10 +52,10 @@ const Sidebar = ({ open, onClose }) => {
               <TbPill className="w-6 h-6 transform -rotate-45" />
             </div>
             <div>
-              <span className="font-serif text-lg font-bold text-white tracking-tight leading-none block">
+              <span className="font-serif text-xl font-bold text-white tracking-tight leading-none block">
                 MedStock
               </span>
-              <span className="text-[#4ecdc4] text-[11px] font-medium tracking-wide">
+              <span className="text-[#4ecdc4] text-xs font-medium tracking-wide">
                 Pharmacy Cloud
               </span>
             </div>
@@ -76,14 +76,14 @@ const Sidebar = ({ open, onClose }) => {
                     to={item.to}
                     onClick={onClose}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-medium transition-all ${
                         isActive
                           ? 'bg-white/10 text-[#4ecdc4] border border-[#4ecdc4]/20 shadow-sm'
                           : 'text-white/70 hover:text-white hover:bg-white/5'
                       }`
                     }
                   >
-                    <Icon size={17} />
+                    <Icon size={19} />
                     <span>{item.label}</span>
                   </NavLink>
                 );
@@ -97,15 +97,15 @@ const Sidebar = ({ open, onClose }) => {
                 <div key={item.label}>
                   <button
                     onClick={() => toggleSection(item.label)}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-medium transition-all ${
                       sectionActive
                         ? 'text-[#4ecdc4]'
                         : 'text-white/70 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    <SectionIcon size={17} />
+                    <SectionIcon size={19} />
                     <span className="flex-1 text-left">{item.label}</span>
-                    {isOpen ? <FiChevronDown size={14} /> : <FiChevronRight size={14} />}
+                    {isOpen ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
                   </button>
 
                   {isOpen && (
@@ -119,13 +119,13 @@ const Sidebar = ({ open, onClose }) => {
                             to={child.to}
                             end={child.to === '/medicines'}
                             onClick={onClose}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                               active
                                 ? 'bg-white/10 text-[#4ecdc4]'
                                 : 'text-white/50 hover:text-white/80 hover:bg-white/5'
                             }`}
                           >
-                            <ChildIcon size={14} />
+                            <ChildIcon size={16} />
                             <span>{child.label}</span>
                           </NavLink>
                         );
@@ -138,9 +138,9 @@ const Sidebar = ({ open, onClose }) => {
           </div>
         </nav>
 
-        <div className="p-4 m-3 rounded-2xl bg-[#234743] border border-white/10 text-xs text-white/70 shrink-0">
+        <div className="p-4 m-3 rounded-2xl bg-[#234743] border border-white/10 text-sm text-white/70 shrink-0">
           <p className="font-semibold text-white mb-0.5">MedStock Cloud v1.0</p>
-          <p className="text-[11px] text-white/50">Encrypted JWT Authentication</p>
+          <p className="text-xs text-white/50">Encrypted JWT Authentication</p>
         </div>
       </aside>
     </>

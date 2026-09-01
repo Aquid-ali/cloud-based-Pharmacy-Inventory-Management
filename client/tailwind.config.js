@@ -26,6 +26,29 @@ export default {
           800: '#1e403d',
           900: '#1c3734',
         },
+        canvas: '#f6f8f8',
+        ink: {
+          DEFAULT: '#1e2a28',
+          soft: '#55655f',
+          faint: '#8b9a95',
+        },
+        stock: {
+          in: '#0f9960',
+          low: '#b45309',
+          out: '#64748b',
+        },
+      },
+      boxShadow: {
+        brand: '0 10px 25px -5px rgb(52 101 96 / 0.25)',
+      },
+      keyframes: {
+        'fade-up': {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+      },
+      animation: {
+        'fade-up': 'fade-up 0.5s ease-out both',
       },
     },
   },

@@ -26,9 +26,40 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['Admin', 'Pharmacist'],
-      default: 'Pharmacist',
+      enum: ['Admin', 'Customer'],
+      default: 'Customer',
     },
+    // Legacy per-store admin association (drives the existing /shop cart+order flow).
+    // An Admin is scoped to exactly one of `store` or `pharmacyId`, never both -
+    // required only when the newer pharmacy-based association isn't set.
+    store: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Store',
+      required: function () {
+        return this.role === 'Admin' && !this.pharmacyId;
+      },
+    },
+    // Pharmacy-based admin association (drives Inventory/MedicineCatalog isolation).
+    // Optional and independent of `store` - see comment above.
+    pharmacyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Pharmacy',
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    addresses: [
+      {
+        fullName: { type: String, trim: true },
+        phone: { type: String, trim: true },
+        line1: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+        isDefault: { type: Boolean, default: false },
+      },
+    ],
   },
   { timestamps: true } // adds createdAt & updatedAt
 );

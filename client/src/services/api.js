@@ -20,9 +20,23 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('medichain_token');
       localStorage.removeItem('medichain_user');
-      // Avoid redirect loop if already on login page
+      const isAdminSection = window.location.pathname.startsWith('/dashboard') ||
+        window.location.pathname.startsWith('/admin') ||
+        window.location.pathname.startsWith('/medicines') ||
+        window.location.pathname.startsWith('/inventory') ||
+        window.location.pathname.startsWith('/sales') ||
+        window.location.pathname.startsWith('/purchase') ||
+        window.location.pathname.startsWith('/employees') ||
+        window.location.pathname.startsWith('/reports') ||
+        window.location.pathname.startsWith('/analytics') ||
+        window.location.pathname.startsWith('/notifications') ||
+        window.location.pathname.startsWith('/cloud') ||
+        window.location.pathname.startsWith('/settings') ||
+        window.location.pathname.startsWith('/customers');
+      const loginPath = isAdminSection ? '/admin/login' : '/login';
+      // Avoid redirect loop if already on a login page
       if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+        window.location.href = loginPath;
       }
     }
     return Promise.reject(error);

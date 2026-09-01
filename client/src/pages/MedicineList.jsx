@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { FiSearch, FiEdit2, FiTrash2, FiEye, FiPlus, FiFilter, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiSearch, FiEdit2, FiTrash2, FiEye, FiPlus, FiFilter, FiChevronLeft, FiChevronRight, FiUploadCloud } from 'react-icons/fi';
 import { getMedicines, deleteMedicine } from '../services/medicineService';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
@@ -89,13 +89,22 @@ const MedicineList = () => {
             Total {pagination.total} registered products in stock.
           </p>
         </div>
-        <Link
-          to="/medicines/add"
-          className="flex items-center justify-center gap-2 bg-[#346560] hover:bg-[#2b5450] text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg shadow-[#346560]/20 transition-all"
-        >
-          <FiPlus size={18} />
-          <span>Add Medicine</span>
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <Link
+            to="/inventory/import"
+            className="flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium px-5 py-3 rounded-2xl border border-slate-200 shadow-sm transition-all"
+          >
+            <FiUploadCloud size={18} />
+            <span>Import CSV</span>
+          </Link>
+          <Link
+            to="/medicines/add"
+            className="flex items-center justify-center gap-2 bg-[#346560] hover:bg-[#2b5450] text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg shadow-[#346560]/20 transition-all"
+          >
+            <FiPlus size={18} />
+            <span>Add Medicine</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filters Bar */}
@@ -127,7 +136,7 @@ const MedicineList = () => {
           >
             <option value="">All Categories</option>
             <option value="Tablet">Tablet</option>
-            <option value="Capsule font-sans">Capsule</option>
+            <option value="Capsule">Capsule</option>
             <option value="Syrup">Syrup</option>
             <option value="Injection">Injection</option>
             <option value="Ointment">Ointment</option>
@@ -218,7 +227,7 @@ const MedicineList = () => {
                       {item.quantity}
                     </td>
                     <td className="py-4 px-4 font-medium text-slate-800">
-                      ${item.sellingPrice?.toFixed(2)}
+                      ₹{item.sellingPrice?.toFixed(2)}
                     </td>
                     <td className="py-4 px-4 text-xs text-slate-600">
                       {new Date(item.expiryDate).toLocaleDateString()}

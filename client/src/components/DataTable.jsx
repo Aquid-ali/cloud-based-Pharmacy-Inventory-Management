@@ -28,7 +28,7 @@ const DataTable = ({ columns, data, emptyTitle, emptyMessage }) => {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {data.map((row, idx) => (
-              <tr key={row.id || idx} className="hover:bg-slate-50/50 transition-colors">
+              <tr key={row._id || row.id || idx} className="hover:bg-slate-50/50 transition-colors">
                 {columns.map((col) => (
                   <td key={col.key} className="px-5 py-4 text-slate-700 whitespace-nowrap">
                     {col.render ? col.render(row) : row[col.key]}

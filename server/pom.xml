@@ -18,7 +18,7 @@
     <description>MediChain Pharmacy Inventory Backend (Spring Boot)</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
