@@ -31,9 +31,13 @@ import ShopCheckout from './pages/shop/Checkout';
 import ShopOrders from './pages/shop/Orders';
 import ShopOrderDetail from './pages/shop/OrderDetail';
 import ShopAccount from './pages/shop/Account';
+import ShopMessages from './pages/shop/Messages';
 
 // Admin: customer orders
 import CustomerOrders from './pages/orders/CustomerOrders';
+
+// Admin: pharmacy messages (customer DMs)
+import PharmacyMessages from './pages/PharmacyMessages';
 
 // Admin: medicine data management (AI enrichment)
 import MedicineDataManagement from './pages/admin/MedicineDataManagement';
@@ -135,6 +139,8 @@ function App() {
         <Route path="/shop/orders" element={<ShopOrders />} />
         <Route path="/shop/orders/:id" element={<ShopOrderDetail />} />
         <Route path="/shop/account" element={<ShopAccount />} />
+        <Route path="/shop/messages" element={<ShopMessages />} />
+        <Route path="/shop/messages/:conversationId" element={<ShopMessages />} />
       </Route>
 
       {/* Medicine catalog search (MedicineCatalog + Inventory + Pharmacy) is
@@ -155,6 +161,8 @@ function App() {
       >
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/orders" element={<CustomerOrders />} />
+        <Route path="/messages" element={<PharmacyMessages />} />
+        <Route path="/messages/:conversationId" element={<PharmacyMessages />} />
 
         {/* Medicine Data Management (AI enrichment) */}
         <Route path="/medicine-data" element={<MedicineDataManagement />} />

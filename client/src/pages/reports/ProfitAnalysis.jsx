@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FiTrendingUp, FiDollarSign, FiPieChart, FiBarChart2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import ReportPage, { ChartPlaceholder } from '../../components/ReportPage';
+import ReportPage from '../../components/ReportPage';
+import BarChart from '../../components/BarChart';
 import Spinner from '../../components/Spinner';
 import { getSalesStats } from '../../services/saleService';
 
@@ -32,15 +33,29 @@ const ProfitAnalysis = () => {
       title="Profit Analysis"
       description="Track revenue, costs, and profit margins across your pharmacy."
       stats={[
-        { icon: FiDollarSign, label: 'Revenue', value: formatCurrency(stats?.totalRevenue), bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+        { icon: FiDollarSign, label: 'Revenue', value: formatCurrency(stats?.totalRevenue), bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
         { icon: FiBarChart2, label: 'Cost of Goods', value: formatCurrency(stats?.totalCost), bgTint: 'bg-rose-500/10', iconColor: 'text-rose-600', borderColor: 'border-rose-500/20' },
         { icon: FiTrendingUp, label: 'Net Profit', value: formatCurrency(stats?.totalProfit), bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
         { icon: FiPieChart, label: 'Profit Margin', value: `${(stats?.profitMargin ?? 0).toFixed(1)}%`, bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },
       ]}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartPlaceholder title="Profit Trend (Monthly)" />
-        <ChartPlaceholder title="Revenue vs Cost Breakdown" />
+        <BarChart
+          title="Profit Trend (Monthly)"
+          data={stats?.monthlyTrend || []}
+          series={[{ key: 'profit', label: 'Profit', color: 'bg-emerald-500' }]}
+          valueFormatter={formatCurrency}
+        />
+        <BarChart
+          title="Revenue vs Cost Breakdown"
+          data={[
+            { label: 'Revenue', value: stats?.totalRevenue || 0, color: 'bg-brandPrimary' },
+            { label: 'Cost', value: stats?.totalCost || 0, color: 'bg-rose-500' },
+            { label: 'Profit', value: stats?.totalProfit || 0, color: 'bg-emerald-500' },
+          ]}
+          series={[{ key: 'value', label: 'Amount', color: 'bg-brandPrimary' }]}
+          valueFormatter={formatCurrency}
+        />
       </div>
     </ReportPage>
   );

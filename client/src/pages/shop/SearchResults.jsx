@@ -5,6 +5,7 @@ import { FiMapPin } from 'react-icons/fi';
 import { browsePharmacyInventory } from '../../services/pharmacyService';
 import PharmacyMedicineCard from '../../components/shop/PharmacyMedicineCard';
 import EmptyState from '../../components/EmptyState';
+import ErrorState from '../../components/ErrorState';
 import Button from '../../components/Button';
 import { SkeletonCardGrid } from '../../components/Skeleton';
 import useCart from '../../hooks/useCart';
@@ -15,9 +16,11 @@ const SearchResults = () => {
   const q = searchParams.get('q') || '';
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const fetchResults = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const { data } = await browsePharmacyInventory({
         pharmacyId: pharmacyId || undefined,
@@ -25,7 +28,8 @@ const SearchResults = () => {
         limit: 40,
       });
       setItems(data.data.inventory);
-    } catch (error) {
+    } catch (err) {
+      setError(true);
       toast.error('Search failed');
     } finally {
       setLoading(false);
@@ -40,7 +44,7 @@ const SearchResults = () => {
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold font-serif text-ink">{q ? `Results for "${q}"` : 'All medicines'}</h1>
+          <h1 className="text-xl font-bold font-display text-ink">{q ? `Results for "${q}"` : 'All medicines'}</h1>
           <p className="text-xs text-ink-faint mt-1">
             {pharmacyId ? `Showing results from ${pharmacyName}` : 'Showing results from every MedStock pharmacy'}
           </p>
@@ -52,6 +56,8 @@ const SearchResults = () => {
 
       {loading ? (
         <SkeletonCardGrid count={12} />
+      ) : error ? (
+        <ErrorState title="Search failed" message="Something went wrong while searching. Please try again." onRetry={fetchResults} />
       ) : items.length === 0 ? (
         <EmptyState title="No medicines found" message="Try a different search term." />
       ) : (

@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { getCatalogMedicineById } from '../../services/medicineCatalogService';
 import { enrichMedicine } from '../../services/medicineEnrichmentService';
 import Spinner from '../Spinner';
+import Modal from '../Modal';
 
 const REVIEW_ROWS = [
   { label: 'Excellent', key: 'excellent', color: 'bg-emerald-500' },
@@ -60,24 +61,23 @@ const MedicineDetailsModal = ({ medicineId, onClose, onAddToInventory }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-in fade-in zoom-in duration-150">
-        <div className="flex items-center justify-between p-6 sm:p-7 pb-0">
-          <h3 className="text-base font-bold text-slate-900 font-serif">Medicine details</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 -mr-1">
-            <FiX size={20} />
-          </button>
-        </div>
+    <Modal onClose={onClose} maxWidth="2xl" className="max-h-[90vh] overflow-y-auto">
+      <div className="flex items-center justify-between p-6 sm:p-7 pb-0">
+        <h3 className="text-base font-bold text-slate-900 font-display">Medicine details</h3>
+        <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 -mr-1">
+          <FiX size={20} />
+        </button>
+      </div>
 
-        <div className="p-6 sm:p-7">
-          {loading ? (
-            <Spinner size="lg" />
-          ) : error || !medicine ? (
-            <p className="text-sm text-rose-600 py-8 text-center">{error || 'Medicine not found.'}</p>
-          ) : (
-            <>
+      <div className="p-6 sm:p-7">
+        {loading ? (
+          <Spinner size="lg" />
+        ) : error || !medicine ? (
+          <p className="text-sm text-rose-600 py-8 text-center">{error || 'Medicine not found.'}</p>
+        ) : (
+          <>
               <div className="grid sm:grid-cols-2 gap-6">
-                <div className="w-full aspect-square rounded-2xl bg-[#f0f7f6] flex items-center justify-center text-[#346560] overflow-hidden">
+                <div className="w-full aspect-square rounded-2xl bg-primary-50 flex items-center justify-center text-brandPrimary overflow-hidden">
                   {showImage ? (
                     <img
                       src={medicine.imageUrl}
@@ -91,7 +91,7 @@ const MedicineDetailsModal = ({ medicineId, onClose, onAddToInventory }) => {
                 </div>
 
                 <div className="flex flex-col">
-                  <h2 className="text-xl font-bold font-serif text-slate-900 mb-1">{medicine.name}</h2>
+                  <h2 className="text-xl font-bold font-display text-slate-900 mb-1">{medicine.name}</h2>
                   <p className="text-sm text-slate-500 mb-4">{medicine.manufacturer}</p>
 
                   <div className="mb-3">
@@ -144,7 +144,7 @@ const MedicineDetailsModal = ({ medicineId, onClose, onAddToInventory }) => {
                   <button
                     onClick={handleEnrich}
                     disabled={enriching}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#346560] border border-[#346560]/30 hover:bg-[#346560]/5 px-4 py-2.5 rounded-2xl transition-colors disabled:opacity-50"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-brandPrimary border border-brandPrimary/30 hover:bg-brandPrimary/5 px-4 py-2.5 rounded-2xl transition-colors disabled:opacity-50"
                   >
                     {enriching ? <FiRefreshCw className="animate-spin" size={14} /> : <FiZap size={14} />}
                     {enriching ? 'Enriching…' : 'Enrich Medicine'}
@@ -152,16 +152,15 @@ const MedicineDetailsModal = ({ medicineId, onClose, onAddToInventory }) => {
                 )}
                 <button
                   onClick={() => onAddToInventory(medicine)}
-                  className="flex items-center gap-1.5 bg-[#346560] hover:bg-[#2b5450] text-white text-sm font-semibold px-5 py-2.5 rounded-2xl transition-colors"
+                  className="flex items-center gap-1.5 bg-brandPrimary hover:bg-brandPrimaryHover text-white text-sm font-semibold px-5 py-2.5 rounded-2xl transition-colors"
                 >
                   <FiPlus size={15} /> Add to Inventory
                 </button>
               </div>
             </>
           )}
-        </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

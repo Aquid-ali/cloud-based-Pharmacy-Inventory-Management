@@ -61,7 +61,7 @@ const StockManagement = () => {
       render: (row) => (
         <Link
           to={`/medicines/edit/${row._id}`}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-[#346560] hover:text-[#2b5450]"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-brandPrimary hover:text-brandPrimaryHover"
         >
           <FiEdit2 size={13} /> Adjust
         </Link>
@@ -90,7 +90,7 @@ const StockManagement = () => {
           isPharmacyAdmin ? (
             <Link
               to="/inventory/add-stock"
-              className="flex items-center gap-2 bg-[#4ecdc4] text-[#1c3734] font-semibold text-sm px-5 py-2.5 rounded-2xl hover:bg-[#3dbdb5] transition-colors"
+              className="flex items-center gap-2 bg-accentCyan text-brandDark font-semibold text-sm px-5 py-2.5 rounded-2xl hover:bg-accentCyanHover transition-colors"
             >
               <FiPlusCircle size={16} /> Add Stock
             </Link>
@@ -103,9 +103,9 @@ const StockManagement = () => {
           icon={FiPackage}
           label="Total Items"
           value={isPharmacyAdmin ? stats?.totalItems ?? 0 : rows.length}
-          bgTint="bg-[#346560]/10"
-          iconColor="text-[#346560]"
-          borderColor="border-[#346560]/20"
+          bgTint="bg-brandPrimary/10"
+          iconColor="text-brandPrimary"
+          borderColor="border-brandPrimary/20"
         />
         <StatCard
           icon={FiLayers}

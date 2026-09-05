@@ -86,10 +86,10 @@ const Checkout = () => {
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-5">
-        <h1 className="text-xl font-bold font-serif text-ink">Checkout</h1>
+        <h1 className="text-xl font-bold font-display text-ink">Checkout</h1>
 
         {/* Fulfilling store */}
-        <div className="flex items-center gap-2 bg-primary-50 border border-tealPrimary/15 text-tealPrimary text-xs font-medium rounded-2xl px-4 py-3">
+        <div className="flex items-center gap-2 bg-primary-50 border border-brandPrimary/15 text-brandPrimary text-xs font-medium rounded-2xl px-4 py-3">
           <FiMapPin size={14} className="shrink-0" />
           Fulfilled by <span className="font-semibold">{pharmacyName}</span>
         </div>
@@ -115,8 +115,8 @@ const Checkout = () => {
                 onClick={() => setDeliveryType(type)}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
                   deliveryType === type
-                    ? 'bg-tealPrimary text-white border-tealPrimary'
-                    : 'bg-white text-ink-soft border-slate-200 hover:border-tealPrimary/40'
+                    ? 'bg-brandPrimary text-white border-brandPrimary'
+                    : 'bg-white text-ink-soft border-slate-200 hover:border-brandPrimary/40'
                 }`}
               >
                 {type}
@@ -162,7 +162,7 @@ const Checkout = () => {
               <label
                 key={opt.value}
                 className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${
-                  paymentMethod === opt.value ? 'border-tealPrimary bg-primary-50' : 'border-slate-200'
+                  paymentMethod === opt.value ? 'border-brandPrimary bg-primary-50' : 'border-slate-200'
                 }`}
               >
                 <input

@@ -35,7 +35,7 @@ const Tabs = ({ tabs, defaultTab }) => {
             onKeyDown={(e) => onKeyDown(e, i)}
             className={`shrink-0 px-4 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${
               active === tab.id
-                ? 'border-tealPrimary text-tealPrimary'
+                ? 'border-brandPrimary text-brandPrimary'
                 : 'border-transparent text-ink-soft hover:text-ink'
             }`}
           >

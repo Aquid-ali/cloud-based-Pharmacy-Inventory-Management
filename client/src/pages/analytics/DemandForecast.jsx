@@ -9,7 +9,7 @@ const DemandForecast = () => (
     title="Demand Forecast"
     description="AI-powered demand predictions to optimize inventory planning."
     stats={[
-      { icon: FiTrendingUp, label: 'Avg. Confidence', value: '86%', bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiTrendingUp, label: 'Avg. Confidence', value: '86%', bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiPackage, label: 'Items Forecasted', value: forecastData.length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiBarChart2, label: 'Reorder Suggested', value: 3, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
     ]}

@@ -313,7 +313,59 @@ The current architecture keeps future features additive rather than disruptive:
 
 ## 12. Notes
 
-- Real payment gateway integration and a real interactive map for the store locator are intentionally **out of scope** for this milestone — payments are simulated and store distance uses a plain Haversine calculation.
+- Real payment gateway integration is intentionally **out of scope** for this milestone — payments are simulated. The store locator now has a real interactive Google Map (see §13); distance figures are still a straight-line Haversine calculation, not road/driving distance.
 - Default low-stock threshold is 20 units (see `LOW_STOCK_THRESHOLD` in `models/Medicine.js`) — make this configurable per-pharmacy in a later milestone if needed.
 - Delivery fee is a flat ₹40, waived above a ₹500 order subtotal (see `FREE_DELIVERY_THRESHOLD` / `DELIVERY_FEE` in `controllers/orderController.js`) — make this configurable if pricing rules need to vary.
 - Store assignment is one-directional today: an Admin's `store` and a Medicine's `store` are set once (at seed time / on creation) and there's no UI to move either to a different store — do this directly in the database if needed.
+
+---
+
+## 13. Google Maps Setup (Pharmacy Locator)
+
+The customer-facing pharmacy locator (`/shop/stores`) renders an interactive Google Map alongside the pharmacy list, using two **separate** API keys — one for the browser, one for the one-time backend geocoding script. Neither key is committed to the repo; both go in a local `.env` file only.
+
+### 13.1 Create/select a Google Cloud project
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project (or select an existing one) — the free tier's monthly Maps credit is more than enough for local development and a small deployment.
+3. **Enable Billing on the project** (Billing → Link a billing account, requires a payment method). This is required by Google for *every* Maps Platform API as of March 2025, even for usage that stays entirely within the free monthly credit — without it, every request (map load or geocoding) fails with `REQUEST_DENIED: You must enable Billing on the Google Cloud Project`. This is the single most common reason the map shows "couldn't be loaded" or an address update fails with a service-issue error despite the key itself being correct.
+
+### 13.2 Enable only the APIs actually used
+
+Under **APIs & Services → Library**, enable:
+- **Maps JavaScript API** — required, powers the interactive map itself.
+- **Directions API** — required for the in-app "Get Directions" route/distance/ETA preview (driving/walking/bicycling) on a pharmacy's info card. Called client-side via the Maps JavaScript API's `routes` library, using the same browser key as the map — not a separate key. Only ever requested when a customer explicitly picks a travel mode, never automatically or per-marker, so cost stays proportional to actual usage.
+- **Geocoding API** — optional, only needed if you'll run `npm run geocode:pharmacies` to backfill coordinates for pharmacies without a saved location.
+
+Do not enable Places — this app doesn't use it. "Get Directions" also keeps its "Open in Google Maps" link (a plain `google.com/maps/dir` URL, not a billed Platform API call) alongside the in-app preview, for actual turn-by-turn navigation on the customer's own device.
+
+### 13.3 Create the browser key (client)
+
+1. **APIs & Services → Credentials → Create Credentials → API key.**
+2. Restrict it:
+   - **Application restrictions → HTTP referrers** — add `http://localhost:5173/*` for local dev, plus your production origin (e.g. `https://yourdomain.com/*`) once deployed.
+   - **API restrictions → Restrict key** — select **Maps JavaScript API** and **Directions API**.
+3. Add it to `client/.env` (copy from `client/.env.example` first if you haven't already):
+   ```
+   VITE_GOOGLE_MAPS_API_KEY=your_browser_key_here
+   ```
+4. Restart the Vite dev server (`npm run dev`) — Vite only reads `.env` at startup, so an already-running server won't pick up a new key.
+
+### 13.4 Create the server key
+
+Used two ways: automatically whenever a pharmacy admin edits their address in **Pharmacy Profile** (`PUT /api/pharmacies/:id` re-geocodes the new address and saves the result in the same request — the old coordinates are always replaced, never left stale), and by the optional one-time `npm run geocode:pharmacies` backfill script.
+
+1. Create a **second** API key the same way.
+2. Restrict it:
+   - **Application restrictions → IP addresses** — your server's IP (or leave unrestricted for local dev only, never in production).
+   - **API restrictions → Restrict key** — select only **Geocoding API**.
+3. Add it to `server/.env`:
+   ```
+   GOOGLE_MAPS_API_KEY=your_server_key_here
+   ```
+4. Without this key set, a pharmacy admin trying to change their address gets a clear "address geocoding is not configured" error rather than a silent no-op — the address is never saved without matching coordinates.
+5. Optionally, run `npm run geocode:pharmacies` (from `server/`) to backfill coordinates for any pharmacy still missing a `location` (e.g. seeded before this feature existed) — safe to re-run, it only touches pharmacies still missing one. Add `-- --dry-run` to preview without writing.
+
+### 13.5 What happens without a key
+
+The rest of the app is unaffected. Without `VITE_GOOGLE_MAPS_API_KEY`, the map panel shows "Map couldn't be loaded. Please try again later." — the pharmacy list, search, "Use my location," and distance sorting all keep working normally.

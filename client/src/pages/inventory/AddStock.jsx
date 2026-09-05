@@ -25,7 +25,7 @@ const CatalogPickCard = ({ medicine, onViewDetails, onAdd, justAdded }) => {
         onClick={() => onViewDetails(medicine._id)}
         className="p-5 pb-3 flex-1 text-left"
       >
-        <div className="w-full aspect-square rounded-xl bg-[#f0f7f6] flex items-center justify-center text-[#346560] mb-3 overflow-hidden">
+        <div className="w-full aspect-square rounded-xl bg-primary-50 flex items-center justify-center text-brandPrimary mb-3 overflow-hidden">
           {showImage ? (
             <img
               src={medicine.imageUrl}
@@ -49,7 +49,7 @@ const CatalogPickCard = ({ medicine, onViewDetails, onAdd, justAdded }) => {
           className={`w-full flex items-center justify-center gap-1.5 text-xs font-semibold py-2.5 rounded-xl transition-colors ${
             justAdded
               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-              : 'bg-[#346560] hover:bg-[#2b5450] text-white'
+              : 'bg-brandPrimary hover:bg-brandPrimaryHover text-white'
           }`}
         >
           {justAdded ? (
@@ -174,7 +174,7 @@ const AddStock = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search medicines, e.g. Paracetamol, Augmentin..."
-          className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm bg-white border border-slate-200/80 focus:outline-none focus:ring-4 focus:ring-[#346560]/10 focus:border-[#346560]/40"
+          className="w-full pl-10 pr-4 py-3 rounded-2xl text-sm bg-white border border-slate-200/80 focus:outline-none focus:ring-4 focus:ring-brandPrimary/10 focus:border-brandPrimary/40"
         />
       </div>
 
@@ -192,11 +192,11 @@ const AddStock = () => {
           <div className="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
             <FiAlertCircle size={32} />
           </div>
-          <h3 className="text-base font-bold text-slate-800 font-serif mb-1">Something went wrong</h3>
+          <h3 className="text-base font-bold text-slate-800 font-display mb-1">Something went wrong</h3>
           <p className="text-xs text-slate-500 max-w-sm leading-relaxed mb-4">{error}</p>
           <button
             onClick={() => fetchMedicines(query, 1, false)}
-            className="text-xs font-semibold text-white bg-[#346560] hover:bg-[#2b5450] px-4 py-2 rounded-xl transition-colors"
+            className="text-xs font-semibold text-white bg-brandPrimary hover:bg-brandPrimaryHover px-4 py-2 rounded-xl transition-colors"
           >
             Try again
           </button>
@@ -229,7 +229,7 @@ const AddStock = () => {
               <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                className="text-sm font-semibold text-[#346560] border border-[#346560]/30 hover:bg-[#346560]/5 disabled:opacity-50 px-6 py-2.5 rounded-xl transition-colors"
+                className="text-sm font-semibold text-brandPrimary border border-brandPrimary/30 hover:bg-brandPrimary/5 disabled:opacity-50 px-6 py-2.5 rounded-xl transition-colors"
               >
                 {loadingMore ? 'Loading...' : 'Load more'}
               </button>

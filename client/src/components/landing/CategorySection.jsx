@@ -14,9 +14,9 @@ const CategorySection = () => (
         <Link
           key={name}
           to={`/customer/medicines?q=${encodeURIComponent(query)}`}
-          className="group flex flex-col items-center text-center gap-3 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:border-tealPrimary/30 transition-all"
+          className="group flex flex-col items-center text-center gap-3 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-sm hover:shadow-md hover:border-brandPrimary/30 transition-all"
         >
-          <div className="w-12 h-12 rounded-2xl bg-primary-50 text-tealPrimary flex items-center justify-center group-hover:bg-tealPrimary group-hover:text-white transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-primary-50 text-brandPrimary flex items-center justify-center group-hover:bg-brandPrimary group-hover:text-white transition-colors">
             <Icon size={22} />
           </div>
           <span className="text-xs font-semibold text-ink">{name}</span>

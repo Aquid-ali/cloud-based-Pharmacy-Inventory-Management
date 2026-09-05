@@ -20,19 +20,19 @@ const ReportPage = ({ title, description, stats, children }) => (
 
 export const ChartPlaceholder = ({ title, height = 'h-64' }) => (
   <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
-    <h3 className="font-serif font-bold text-slate-800 mb-4">{title}</h3>
-    <div className={`${height} rounded-2xl bg-gradient-to-br from-[#346560]/5 to-[#4ecdc4]/10 border border-dashed border-[#346560]/20 flex items-center justify-center`}>
+    <h3 className="font-display font-bold text-slate-800 mb-4">{title}</h3>
+    <div className={`${height} rounded-2xl bg-gradient-to-br from-brandPrimary/5 to-accentCyan/10 border border-dashed border-brandPrimary/20 flex items-center justify-center`}>
       <div className="text-center">
         <div className="flex items-end justify-center gap-1.5 mb-3">
           {[40, 65, 45, 80, 55, 70, 50].map((h, i) => (
             <div
               key={i}
-              className="w-6 rounded-t-md bg-[#346560]/30"
+              className="w-6 rounded-t-md bg-brandPrimary/30"
               style={{ height: `${h}px` }}
             />
           ))}
         </div>
-        <p className="text-xs text-slate-400 font-medium">Chart visualization</p>
+        <p className="text-xs text-slate-400 font-medium">Illustrative - not live data</p>
       </div>
     </div>
   </div>

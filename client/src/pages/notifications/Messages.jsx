@@ -11,7 +11,7 @@ const columns = [
     key: 'read',
     label: 'Status',
     render: (row) => (
-      <span className={`inline-flex items-center gap-1 text-xs font-semibold ${row.read ? 'text-slate-400' : 'text-[#346560]'}`}>
+      <span className={`inline-flex items-center gap-1 text-xs font-semibold ${row.read ? 'text-slate-400' : 'text-brandPrimary'}`}>
         <FiEye size={12} />
         {row.read ? 'Read' : 'Unread'}
       </span>
@@ -24,7 +24,7 @@ const Messages = () => (
     title="Messages"
     description="Internal and external communications for your pharmacy."
     stats={[
-      { icon: FiMail, label: 'Total Messages', value: messagesData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiMail, label: 'Total Messages', value: messagesData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiInbox, label: 'Unread', value: messagesData.filter((m) => !m.read).length, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
     ]}
     columns={columns}

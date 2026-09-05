@@ -34,7 +34,7 @@ const ListPage = ({
           addLabel && (
             <button
               onClick={onAdd}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4ecdc4] text-[#1c3734] rounded-2xl text-sm font-semibold hover:bg-[#3dbdb5] transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-accentCyan text-brandDark rounded-2xl text-sm font-semibold hover:bg-accentCyanHover transition-colors"
             >
               <FiPlus size={16} />
               {addLabel}
@@ -60,7 +60,7 @@ const ListPage = ({
               placeholder={searchPlaceholder}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]"
+              className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary"
             />
           </div>
           {filters}

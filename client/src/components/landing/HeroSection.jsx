@@ -1,100 +1,140 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiGrid } from 'react-icons/fi';
-import { TbPill } from 'react-icons/tb';
-import { stockTextTint } from '../../utils/stockStatus';
+import { motion, useReducedMotion } from 'framer-motion';
+import { FiArrowRight, FiMapPin } from 'react-icons/fi';
+import { TbPill, TbClock, TbShieldCheck } from 'react-icons/tb';
+import { Reveal } from './motion';
 
-const PREVIEW_ROWS = [
-  { name: 'Azithromycin 500mg', manufacturer: 'Cipla', status: 'In Stock', price: '84.00' },
-  { name: 'Metformin 500mg', manufacturer: 'Sun Pharma', status: 'Low Stock', price: '32.50' },
-  { name: 'Cetirizine 10mg', manufacturer: 'Dr. Reddy\'s', status: 'In Stock', price: '18.00' },
+// Illustrative mock of the app's own search-results UI (same convention the
+// previous hero used) - generic, widely-known medicine names, not a claim
+// about any specific pharmacy's real-time stock or distance.
+const MOCK_ROWS = [
+  { name: 'Paracetamol 500mg', tag: 'In Stock' },
+  { name: 'Cetirizine 10mg', tag: 'In Stock' },
+  { name: 'Vitamin D3', tag: 'Low Stock' },
+];
+
+const FLOATING_BADGES = [
+  { icon: FiMapPin, label: '2.4 km away', className: '-left-4 sm:-left-8 top-8', delay: 0.1 },
+  { icon: TbPill, label: 'Medicine Available', className: '-right-4 sm:-right-10 top-1/3', delay: 0.3 },
+  { icon: TbClock, label: 'Open Now', className: '-left-6 sm:-left-10 bottom-16', delay: 0.5 },
+  { icon: TbShieldCheck, label: 'Verified Pharmacy', className: '-right-2 sm:-right-6 bottom-0', delay: 0.7 },
 ];
 
 const HeroSection = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    navigate(query.trim() ? `/customer/medicines?q=${encodeURIComponent(query.trim())}` : '/customer/medicines');
-  };
+  const reduceMotion = useReducedMotion();
 
   return (
-    <section className="bg-primary-50">
-      <div className="w-full px-4 sm:px-6 lg:px-10 py-16 sm:py-20 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-        {/* Copy + search */}
+    <section className="relative overflow-hidden bg-midnight pt-[72px]">
+      {/* Ambient gradient orbs - purely decorative, respects reduced motion via the animate-float utility's own duration collapse in index.css */}
+      <div className="pointer-events-none absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-electricBlue/20 blur-[100px] animate-float" aria-hidden="true" />
+      <div
+        className="pointer-events-none absolute top-1/3 -right-32 w-[26rem] h-[26rem] rounded-full bg-lavender/20 blur-[100px] animate-float"
+        style={{ animationDelay: '2.5s' }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, #94A3B8 1px, transparent 1px), linear-gradient(to bottom, #94A3B8 1px, transparent 1px)',
+          backgroundSize: '56px 56px',
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="relative w-full px-4 sm:px-6 lg:px-10 py-20 sm:py-28 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div className="min-w-0 max-w-xl">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white text-tealPrimary text-xs font-semibold border border-tealPrimary/15 mb-6">
-            Online Pharmacy &amp; Healthcare Platform
-          </span>
+          <Reveal>
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 text-cyanAccent text-xs font-semibold border border-white/10">
+              Online Pharmacy &amp; Healthcare Platform
+            </span>
+          </Reveal>
 
-          <h1 className="font-serif text-4xl sm:text-5xl font-bold text-ink leading-[1.1]">
-            Your Health, Our Priority
-          </h1>
-          <p className="text-ink-soft text-sm sm:text-base mt-4 leading-relaxed">
-            Order medicines, discover healthcare essentials, and get reliable health information — all in one place.
-          </p>
+          <Reveal delay={0.1}>
+            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-[1.08] mt-6">
+              Healthcare,{' '}
+              <span className="bg-gradient-to-r from-cyanAccent via-electricBlue to-lavender bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-shift">
+                Closer
+              </span>{' '}
+              Than Ever.
+            </h1>
+          </Reveal>
 
-          <form onSubmit={handleSearch} className="w-full mt-8">
-            <div className="relative bg-white rounded-2xl shadow-lg shadow-slate-200/60 p-2 flex items-center gap-2 border border-slate-100">
-              <FiSearch className="ml-3 text-slate-400 shrink-0" size={18} />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for medicines, health products or conditions..."
-                className="flex-1 min-w-0 py-2.5 text-sm text-ink placeholder:text-slate-400 focus:outline-none"
-              />
+          <Reveal delay={0.2}>
+            <p className="text-landingGray text-sm sm:text-base mt-5 leading-relaxed max-w-md">
+              Search real medicines, find pharmacies that actually stock them nearby, and message the pharmacy
+              directly — all from one connected platform.
+            </p>
+          </Reveal>
+
+          <Reveal delay={0.3}>
+            <div className="flex flex-wrap items-center gap-3 mt-8">
               <button
-                type="submit"
-                className="shrink-0 bg-tealPrimary hover:bg-tealHover text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors"
+                onClick={() => navigate('/customer/medicines')}
+                className="flex items-center gap-2 bg-gradient-to-r from-electricBlue to-lavender hover:opacity-90 text-white text-sm font-semibold px-6 py-3.5 rounded-full transition-opacity shadow-lg shadow-electricBlue/20"
               >
-                Search
+                Find Medicines <FiArrowRight size={16} />
+              </button>
+              <button
+                onClick={() => navigate('/shop/stores')}
+                className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white text-sm font-semibold px-6 py-3.5 rounded-full border border-white/15 transition-colors"
+              >
+                Explore Pharmacies
               </button>
             </div>
-          </form>
-
-          <div className="flex flex-wrap items-center gap-3 mt-6">
-            <button
-              onClick={() => navigate('/customer/medicines')}
-              className="flex items-center gap-2 bg-tealPrimary hover:bg-tealHover text-white text-sm font-semibold px-6 py-3 rounded-2xl transition-colors"
-            >
-              <FiSearch size={16} /> Search Medicines
-            </button>
-            <a
-              href="#categories"
-              className="flex items-center gap-2 bg-white hover:bg-slate-50 text-tealPrimary text-sm font-semibold px-6 py-3 rounded-2xl border border-tealPrimary/20 transition-colors"
-            >
-              <FiGrid size={16} /> Explore Categories
-            </a>
-          </div>
+          </Reveal>
         </div>
 
-        {/* Product interface preview — a stylized snapshot of the real
-            search-results view, not a decorative illustration. */}
-        <div className="hidden lg:block" aria-hidden="true">
-          <div className="bg-white rounded-3xl border border-slate-200/70 shadow-xl shadow-slate-900/5 p-5 rotate-1 hover:rotate-0 transition-transform duration-300">
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100 mb-4">
-              <FiSearch className="text-slate-300" size={14} />
-              <span className="text-xs text-slate-400">azithromycin</span>
+        {/* Floating "digital pharmacy interface" visual */}
+        <div className="hidden lg:block relative" aria-hidden="true">
+          <motion.div
+            initial={reduceMotion ? undefined : { opacity: 0, y: 30, scale: 0.96 }}
+            whileInView={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+            className="relative bg-white/[0.04] backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-2xl shadow-black/40"
+          >
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 mb-4">
+              <TbPill className="text-cyanAccent shrink-0" size={16} />
+              <span className="text-xs text-landingGray">Search medicines near you…</span>
             </div>
 
             <div className="space-y-2.5">
-              {PREVIEW_ROWS.map((row) => (
-                <div key={row.name} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100">
-                  <div className="w-10 h-10 rounded-xl bg-primary-50 text-tealPrimary flex items-center justify-center shrink-0">
+              {MOCK_ROWS.map((row) => (
+                <div key={row.name} className="flex items-center gap-3 p-3 rounded-2xl border border-white/10 bg-white/[0.03]">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-electricBlue/30 to-lavender/30 text-cyanAccent flex items-center justify-center shrink-0">
                     <TbPill className="w-5 h-5 transform -rotate-45" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-ink truncate">{row.name}</p>
-                    <p className={`text-[11px] font-medium ${stockTextTint[row.status]}`}>{row.status}</p>
+                    <p className="text-xs font-semibold text-white truncate">{row.name}</p>
+                    <p className="text-[11px] font-medium text-cyanAccent">{row.tag}</p>
                   </div>
-                  <span className="text-xs font-bold text-ink shrink-0">₹{row.price}</span>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
+
+          {FLOATING_BADGES.map(({ icon: Icon, label, className, delay }) => (
+            <motion.div
+              key={label}
+              initial={reduceMotion ? undefined : { opacity: 0, scale: 0.8 }}
+              whileInView={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.4 + delay, ease: [0.22, 1, 0.36, 1] }}
+              className={`absolute ${className} flex items-center gap-1.5 bg-midnight/90 backdrop-blur-xl border border-white/10 rounded-full px-3.5 py-2 shadow-xl animate-float`}
+              style={{ animationDelay: `${delay}s` }}
+            >
+              <Icon className="text-cyanAccent shrink-0" size={14} />
+              <span className="text-[11px] font-semibold text-white whitespace-nowrap">{label}</span>
+            </motion.div>
+          ))}
         </div>
       </div>
+
+      {/* Soft fade into the next (light) section */}
+      <div className="h-24 bg-gradient-to-b from-transparent to-landingOffWhite" aria-hidden="true" />
     </section>
   );
 };

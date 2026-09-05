@@ -49,21 +49,21 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-[#1c3734] rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-[#4ecdc4]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-brandDark rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+        <div className="absolute right-0 top-0 translate-x-8 -translate-y-8 w-64 h-64 bg-accentCyan/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
               {pharmacyName ? `${pharmacyName} Overview` : 'Pharmacy Overview'}
             </h1>
-            <p className="text-[#4ecdc4] text-sm font-medium">
+            <p className="text-accentCyan text-sm font-medium">
               Live statistics for your medicine inventory and stock health.
             </p>
           </div>
           {isPharmacyAdmin && (
             <Link
               to="/inventory/add-stock"
-              className="shrink-0 flex items-center gap-2 bg-[#4ecdc4] text-[#1c3734] font-semibold text-sm px-5 py-2.5 rounded-2xl hover:bg-[#3dbdb5] transition-colors"
+              className="shrink-0 flex items-center gap-2 bg-accentCyan text-brandDark font-semibold text-sm px-5 py-2.5 rounded-2xl hover:bg-accentCyanHover transition-colors"
             >
               <FiPlusCircle size={16} /> Add Stock
             </Link>
@@ -71,16 +71,26 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Grid Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <StatCard
-          icon={FiPackage}
-          label="Total Medicines"
-          value={(isPharmacyAdmin ? stats?.totalItems : stats?.totalMedicines) ?? 0}
-          bgTint="bg-[#346560]/10"
-          iconColor="text-[#346560]"
-          borderColor="border-[#346560]/20"
-        />
+      {/* Primary metric - the single most important number gets its own
+          prominent block rather than matching the smaller cards below. */}
+      <div className="bg-white rounded-3xl border border-brandPrimary/20 shadow-sm p-6 sm:p-8 flex items-center gap-6">
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-brandPrimary/10 text-brandPrimary flex items-center justify-center shrink-0">
+          <FiPackage size={32} className="sm:hidden" />
+          <FiPackage size={36} className="hidden sm:block" />
+        </div>
+        <div>
+          <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">Total Medicines</p>
+          <p className="text-4xl sm:text-5xl font-bold text-slate-900 mt-1 font-display">
+            {(isPharmacyAdmin ? stats?.totalItems : stats?.totalMedicines) ?? 0}
+          </p>
+          <p className="text-xs text-slate-400 mt-1">
+            Across your {isPharmacyAdmin ? 'pharmacy inventory' : 'store catalog'}
+          </p>
+        </div>
+      </div>
+
+      {/* Supporting metrics */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <StatCard
           icon={FiAlertTriangle}
           label="Low Stock"

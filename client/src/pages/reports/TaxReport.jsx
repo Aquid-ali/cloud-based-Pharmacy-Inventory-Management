@@ -8,7 +8,7 @@ const TaxReport = () => (
     title="Tax Report"
     description="GST collection, tax liability, and compliance reporting."
     stats={[
-      { icon: FiDollarSign, label: 'Tax Collected', value: reportSummary.tax.collected, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiDollarSign, label: 'Tax Collected', value: reportSummary.tax.collected, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiFileText, label: 'Tax Paid', value: reportSummary.tax.paid, bgTint: 'bg-rose-500/10', iconColor: 'text-rose-600', borderColor: 'border-rose-500/20' },
       { icon: FiTrendingUp, label: 'Net Tax Liability', value: reportSummary.tax.net, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiPercent, label: 'Tax Rate', value: reportSummary.tax.rate, bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },

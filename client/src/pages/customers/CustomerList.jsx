@@ -17,7 +17,7 @@ const CustomerList = () => (
     title="Customer List"
     description="Manage customer profiles, contact details, and purchase history."
     stats={[
-      { icon: FiUsers, label: 'Total Customers', value: customersData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiUsers, label: 'Total Customers', value: customersData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiUserPlus, label: 'Active', value: customersData.filter((c) => c.status === 'Active').length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiHeart, label: 'Loyalty Members', value: customersData.filter((c) => c.loyalty !== 'Bronze').length, bgTint: 'bg-rose-500/10', iconColor: 'text-rose-600', borderColor: 'border-rose-500/20' },
       { icon: FiShoppingBag, label: 'Total Orders', value: customersData.reduce((s, c) => s + c.orders, 0), bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },

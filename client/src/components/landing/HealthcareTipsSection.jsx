@@ -12,7 +12,7 @@ const TipCard = ({ title, description, details }) => {
       {expanded && <p className="text-xs text-ink-soft mt-2 leading-relaxed">{details}</p>}
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="mt-3 self-start flex items-center gap-1 text-xs font-semibold text-tealPrimary hover:text-tealHover"
+        className="mt-3 self-start flex items-center gap-1 text-xs font-semibold text-brandPrimary hover:text-brandPrimaryHover"
       >
         {expanded ? 'Show Less' : 'Read More'}
         {expanded ? <FiChevronUp size={13} /> : <FiChevronDown size={13} />}

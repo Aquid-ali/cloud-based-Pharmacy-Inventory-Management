@@ -31,7 +31,7 @@ const OrderTimeline = ({ status }) => {
               <span
                 className={`flex items-center justify-center w-7 h-7 rounded-full border-2 shrink-0 transition-colors ${
                   done
-                    ? 'bg-tealPrimary border-tealPrimary text-white'
+                    ? 'bg-brandPrimary border-brandPrimary text-white'
                     : 'bg-white border-slate-200 text-slate-300'
                 }`}
               >
@@ -42,7 +42,7 @@ const OrderTimeline = ({ status }) => {
               </span>
             </div>
             {!isLast && (
-              <div className={`flex-1 h-0.5 mb-5 ${i < currentIndex ? 'bg-tealPrimary' : 'bg-slate-200'}`} />
+              <div className={`flex-1 h-0.5 mb-5 ${i < currentIndex ? 'bg-brandPrimary' : 'bg-slate-200'}`} />
             )}
           </li>
         );

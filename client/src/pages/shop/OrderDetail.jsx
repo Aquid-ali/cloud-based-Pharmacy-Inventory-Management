@@ -34,7 +34,7 @@ const OrderDetail = () => {
   if (!order) {
     return (
       <div className="space-y-4 max-w-3xl">
-        <Link to="/shop/orders" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-tealPrimary">
+        <Link to="/shop/orders" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary">
           <FiArrowLeft size={14} /> Back to my orders
         </Link>
         <div className="bg-white rounded-3xl border border-slate-200/80">
@@ -46,7 +46,7 @@ const OrderDetail = () => {
 
   return (
     <div className="space-y-5 max-w-3xl">
-      <Link to="/shop/orders" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-tealPrimary">
+      <Link to="/shop/orders" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary">
         <FiArrowLeft size={14} /> Back to my orders
       </Link>
 
@@ -57,7 +57,7 @@ const OrderDetail = () => {
               <FiCheckCircle size={22} />
             </div>
             <div>
-              <h1 className="text-lg font-bold font-serif text-ink">Order placed</h1>
+              <h1 className="text-lg font-bold font-display text-ink">Order placed</h1>
               <p className="text-xs text-ink-faint">
                 #{order._id.slice(-8).toUpperCase()} · {new Date(order.createdAt).toLocaleString()}
               </p>
@@ -76,7 +76,7 @@ const OrderDetail = () => {
         <div className="space-y-3 mb-6">
           {order.items.map((item, idx) => (
             <div key={item.inventoryItem || item.medicine || idx} className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary-50 text-tealPrimary flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-xl bg-primary-50 text-brandPrimary flex items-center justify-center shrink-0">
                 <TbPill className="w-5 h-5 transform -rotate-45" />
               </div>
               <div className="flex-1 min-w-0">

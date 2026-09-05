@@ -81,7 +81,7 @@ const MedicineDetails = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
           <div>
-            <h1 className="text-2xl font-bold font-serif text-slate-900">{medicine.medicineName}</h1>
+            <h1 className="text-2xl font-bold font-display text-slate-900">{medicine.medicineName}</h1>
             <p className="text-sm text-slate-500 mt-0.5">{medicine.genericName || 'No generic name'}</p>
           </div>
           <span
@@ -95,29 +95,29 @@ const MedicineDetails = () => {
 
         {/* Grid Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-[#f0f7f6] border border-[#346560]/10">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#346560] uppercase mb-1">
+          <div className="p-4 rounded-2xl bg-primary-50 border border-brandPrimary/10">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brandPrimary uppercase mb-1">
               <FiPackage /> Stock Quantity
             </div>
             <p className="text-2xl font-bold text-slate-900">{medicine.quantity}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#f0f7f6] border border-[#346560]/10">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#346560] uppercase mb-1">
+          <div className="p-4 rounded-2xl bg-primary-50 border border-brandPrimary/10">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brandPrimary uppercase mb-1">
               <FiDollarSign /> Selling Price
             </div>
             <p className="text-2xl font-bold text-slate-900">₹{medicine.sellingPrice?.toFixed(2)}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#f0f7f6] border border-[#346560]/10">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#346560] uppercase mb-1">
+          <div className="p-4 rounded-2xl bg-primary-50 border border-brandPrimary/10">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brandPrimary uppercase mb-1">
               <FiTag /> Category
             </div>
             <p className="text-lg font-bold text-slate-900">{medicine.category}</p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-[#f0f7f6] border border-[#346560]/10">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#346560] uppercase mb-1">
+          <div className="p-4 rounded-2xl bg-primary-50 border border-brandPrimary/10">
+            <div className="flex items-center gap-2 text-xs font-semibold text-brandPrimary uppercase mb-1">
               <FiCalendar /> Expiry Date
             </div>
             <p className="text-lg font-bold text-slate-900">

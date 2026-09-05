@@ -13,7 +13,21 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <CartProvider>
           <App />
-          <Toaster position="top-right" toastOptions={{ duration: 3500 }} />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3500,
+              style: {
+                background: '#07111F',
+                color: '#F8FAFC',
+                fontSize: '13px',
+                borderRadius: '14px',
+                padding: '10px 14px',
+              },
+              success: { iconTheme: { primary: '#22D3EE', secondary: '#07111F' } },
+              error: { iconTheme: { primary: '#F43F5E', secondary: '#07111F' } },
+            }}
+          />
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

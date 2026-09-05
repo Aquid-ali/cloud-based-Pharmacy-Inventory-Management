@@ -4,6 +4,9 @@ const Inventory = require('../models/Inventory');
 const MedicineCatalog = require('../models/MedicineCatalog');
 const ApiError = require('../utils/ApiError');
 const { resolveNewBatchFlags } = require('../services/batchNotificationService');
+const { geocodeAddress, isAddressNotFound } = require('../services/geocodingService');
+
+const ADDRESS_FIELDS = ['address', 'city', 'state', 'pincode'];
 
 const EARTH_RADIUS_KM = 6371;
 const toRad = (deg) => (deg * Math.PI) / 180;
@@ -239,7 +242,14 @@ const getPharmacyById = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Update a pharmacy
+ * @desc    Update a pharmacy. If any address field changes, the new address
+ *          is re-geocoded and `location` is replaced with the result in the
+ *          same save - the two can never drift out of sync. If the address
+ *          can't be geocoded, the entire update is rejected (nothing is
+ *          written) rather than saving an address with stale or missing
+ *          coordinates. An admin may instead send `manualLocation` (e.g.
+ *          after dragging the map preview's pin) to set the exact
+ *          coordinates directly, skipping geocoding entirely for that save.
  * @route   PUT /api/pharmacies/:id
  * @access  Private (Admin, owner only)
  */
@@ -254,7 +264,63 @@ const updatePharmacy = asyncHandler(async (req, res) => {
     throw new ApiError(403, 'You can only manage pharmacies you own');
   }
 
-  const { ownerId, pharmacyId, ...updates } = req.body; // ownerId/pharmacyId are never client-editable
+  // ownerId/pharmacyId are never client-editable; `location` is never
+  // client-settable directly - it's only ever derived below, either from
+  // geocoding the address or from a validated `manualLocation` override,
+  // never trusted as-is from the request body.
+  const { ownerId, pharmacyId, location, manualLocation, ...updates } = req.body;
+
+  if (manualLocation !== undefined) {
+    const lat = Number(manualLocation?.lat);
+    const lng = Number(manualLocation?.lng);
+    const isValid = Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+    if (!isValid) {
+      throw new ApiError(400, 'The manually adjusted location is not valid. Please try dragging the pin again.');
+    }
+    updates.location = { lat, lng };
+  } else {
+    const addressChanging = ADDRESS_FIELDS.some(
+      (field) => field in updates && updates[field] !== pharmacy[field]
+    );
+
+    if (addressChanging) {
+      if (!process.env.GOOGLE_MAPS_API_KEY) {
+        throw new ApiError(
+          500,
+          'Address geocoding is not configured on the server, so the address can\'t be updated right now. Contact support.'
+        );
+      }
+
+      const candidateAddress = {
+        address: updates.address ?? pharmacy.address,
+        city: updates.city ?? pharmacy.city,
+        state: updates.state ?? pharmacy.state,
+        pincode: updates.pincode ?? pharmacy.pincode,
+      };
+
+      const geocoded = await geocodeAddress(candidateAddress, process.env.GOOGLE_MAPS_API_KEY);
+      if (geocoded.status !== 'OK') {
+        if (isAddressNotFound(geocoded.status)) {
+          throw new ApiError(
+            400,
+            "We couldn't verify that address. Please check it for typos and try again - no changes were saved."
+          );
+        }
+        // Anything other than "address not found" is a service/configuration
+        // problem (bad key, billing not enabled, quota exceeded, etc.) - never
+        // blame the admin's address for it. Logged server-side so it's
+        // actually diagnosable; the client only sees a generic retry message.
+        console.error(`[Pharmacy geocoding] ${geocoded.status}: ${geocoded.errorMessage || 'no details'}`);
+        throw new ApiError(
+          502,
+          "We couldn't verify that address right now due to a service issue on our end. Please try again shortly - no changes were saved."
+        );
+      }
+
+      updates.location = { lat: geocoded.lat, lng: geocoded.lng };
+    }
+  }
+
   Object.assign(pharmacy, updates);
   await pharmacy.save();
 

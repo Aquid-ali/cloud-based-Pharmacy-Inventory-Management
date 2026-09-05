@@ -9,13 +9,16 @@ import {
   FiZap,
   FiCheckCircle,
   FiClock,
+  FiMessageCircle,
 } from 'react-icons/fi';
 import { TbPill } from 'react-icons/tb';
+import toast from 'react-hot-toast';
 import {
   getCatalogMedicineById,
   getCatalogMedicineAvailability,
   searchCatalogMedicines,
 } from '../../services/medicineCatalogService';
+import { startConversation } from '../../services/conversationService';
 import Spinner from '../../components/Spinner';
 import ConfirmModal from '../../components/ConfirmModal';
 import EmptyState from '../../components/EmptyState';
@@ -138,7 +141,7 @@ const MedicineDetails = () => {
       <div className="space-y-4">
         <Link
           to="/customer/medicines"
-          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-tealPrimary"
+          className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary"
         >
           <FiArrowLeft size={14} /> Back to search
         </Link>
@@ -248,11 +251,27 @@ const MedicineDetails = () => {
     }
   };
 
+  // Preserves medicine context in the opening chat message, per the "ask
+  // about this medicine" flow - startConversation itself handles the
+  // signed-out redirect (with a return path back to this exact page).
+  const handleAsk = async (row) => {
+    try {
+      await startConversation(row.pharmacyId, {
+        navigate,
+        user,
+        currentPath: `/customer/medicines/${id}`,
+        prefillText: `I'm asking about: ${medicine.name}. `,
+      });
+    } catch {
+      toast.error("Couldn't start a conversation. Please try again.");
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Link
         to="/customer/medicines"
-        className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-tealPrimary"
+        className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary"
       >
         <FiArrowLeft size={14} /> Back to search
       </Link>
@@ -263,7 +282,7 @@ const MedicineDetails = () => {
         {/* ===================== MEDICINE INFORMATION ===================== */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-tealPrimary">Medicine Information</h2>
+            <h2 className="text-xs font-bold uppercase tracking-widest text-brandPrimary">Medicine Information</h2>
             <span
               className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
                 isVerified
@@ -279,7 +298,7 @@ const MedicineDetails = () => {
 
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
-              <div className="w-full aspect-square rounded-2xl bg-primary-50 flex items-center justify-center text-tealPrimary overflow-hidden">
+              <div className="w-full aspect-square rounded-2xl bg-primary-50 flex items-center justify-center text-brandPrimary overflow-hidden">
                 {showImage ? (
                   <img
                     src={medicine.imageUrl}
@@ -294,7 +313,7 @@ const MedicineDetails = () => {
 
               <div className="flex flex-col gap-3">
                 <div>
-                  <h1 className="text-2xl font-bold font-serif text-ink mb-1">{medicine.name}</h1>
+                  <h1 className="text-2xl font-bold font-display text-ink mb-1">{medicine.name}</h1>
                   <p className="text-sm text-ink-soft">{medicine.manufacturer}</p>
                 </div>
 
@@ -310,7 +329,7 @@ const MedicineDetails = () => {
 
         {/* ===================== PHARMACY AVAILABILITY ===================== */}
         <div className="lg:sticky lg:top-6">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-tealPrimary mb-3">Pharmacy Availability</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-brandPrimary mb-3">Pharmacy Availability</h2>
           {availabilityLoading ? (
             <Spinner size="md" />
           ) : availabilityError ? (
@@ -357,24 +376,35 @@ const MedicineDetails = () => {
                     <span className="text-base font-bold text-ink">₹{p.sellingPrice?.toFixed(2)}</span>
                   </div>
 
-                  {p.status !== 'Out of Stock' && (
-                    <div className="flex items-center gap-2 mt-3">
-                      <button
-                        onClick={() => handleAddToCart(p)}
-                        title="Add to cart"
-                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-tealPrimary border border-tealPrimary/30 hover:bg-tealPrimary/5 px-3 py-2 rounded-xl transition-colors"
-                      >
-                        <FiShoppingCart size={13} /> Add
-                      </button>
-                      <button
-                        onClick={() => handleBuyNow(p)}
-                        title="Buy now"
-                        className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-tealPrimary hover:bg-tealHover px-3 py-2 rounded-xl transition-colors"
-                      >
-                        <FiZap size={13} /> Buy Now
-                      </button>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2 mt-3">
+                    {p.status !== 'Out of Stock' && (
+                      <>
+                        <button
+                          onClick={() => handleAddToCart(p)}
+                          title="Add to cart"
+                          className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-brandPrimary border border-brandPrimary/30 hover:bg-brandPrimary/5 px-3 py-2 rounded-xl transition-colors"
+                        >
+                          <FiShoppingCart size={13} /> Add
+                        </button>
+                        <button
+                          onClick={() => handleBuyNow(p)}
+                          title="Buy now"
+                          className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-brandPrimary hover:bg-brandPrimaryHover px-3 py-2 rounded-xl transition-colors"
+                        >
+                          <FiZap size={13} /> Buy Now
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={() => handleAsk(p)}
+                      title="Message this pharmacy about this medicine"
+                      className={`flex items-center justify-center gap-1.5 text-xs font-semibold text-ink-soft border border-slate-200 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors ${
+                        p.status !== 'Out of Stock' ? 'shrink-0' : 'flex-1'
+                      }`}
+                    >
+                      <FiMessageCircle size={13} /> Ask
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -384,7 +414,7 @@ const MedicineDetails = () => {
 
       {related.length > 0 && (
         <div>
-          <h2 className="text-xs font-bold uppercase tracking-widest text-tealPrimary mb-3">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-brandPrimary mb-3">
             More from {medicine.manufacturer}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">

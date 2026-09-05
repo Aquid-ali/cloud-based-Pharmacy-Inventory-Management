@@ -27,7 +27,7 @@ const AboutSection = () => (
       <div className="bg-primary-50 rounded-3xl p-6 sm:p-8 space-y-4">
         {POINTS.map((point) => (
           <div key={point} className="flex items-start gap-3">
-            <div className="w-6 h-6 rounded-full bg-tealPrimary text-white flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-6 h-6 rounded-full bg-brandPrimary text-white flex items-center justify-center shrink-0 mt-0.5">
               <FiCheck size={13} />
             </div>
             <p className="text-sm text-ink-soft leading-relaxed">{point}</p>

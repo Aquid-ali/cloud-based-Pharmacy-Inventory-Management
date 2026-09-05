@@ -27,13 +27,13 @@ const Cart = () => {
   return (
     <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 space-y-3">
-        <h1 className="text-xl font-bold font-serif text-ink mb-2">Your cart</h1>
+        <h1 className="text-xl font-bold font-display text-ink mb-2">Your cart</h1>
         {items.map((item) => (
           <div
             key={item.medicineId}
             className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-4 flex items-center gap-4"
           >
-            <div className="w-14 h-14 rounded-xl bg-primary-50 text-tealPrimary flex items-center justify-center shrink-0">
+            <div className="w-14 h-14 rounded-xl bg-primary-50 text-brandPrimary flex items-center justify-center shrink-0">
               <TbPill className="w-6 h-6 transform -rotate-45" />
             </div>
             <div className="flex-1 min-w-0">
@@ -49,14 +49,14 @@ const Cart = () => {
             <div className="flex items-center border border-slate-200 rounded-xl">
               <button
                 onClick={() => updateQty(item.medicineId, item.quantity - 1)}
-                className="p-2.5 text-slate-500 hover:text-tealPrimary"
+                className="p-2.5 text-slate-500 hover:text-brandPrimary"
               >
                 <FiMinus size={13} />
               </button>
               <span className="w-7 text-center text-sm font-semibold">{item.quantity}</span>
               <button
                 onClick={() => updateQty(item.medicineId, Math.min(item.maxQuantity, item.quantity + 1))}
-                className="p-2.5 text-slate-500 hover:text-tealPrimary"
+                className="p-2.5 text-slate-500 hover:text-brandPrimary"
               >
                 <FiPlus size={13} />
               </button>

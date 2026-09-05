@@ -17,7 +17,7 @@ const Staff = () => (
     title="Staff"
     description="Manage pharmacy staff members and their assignments."
     stats={[
-      { icon: FiUsers, label: 'Total Staff', value: staffData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiUsers, label: 'Total Staff', value: staffData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiUserCheck, label: 'Active', value: staffData.filter((s) => s.status === 'Active').length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiShield, label: 'Pharmacists', value: staffData.filter((s) => s.role === 'Pharmacist').length, bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },
       { icon: FiUserPlus, label: 'Roles', value: new Set(staffData.map((s) => s.role)).size, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },

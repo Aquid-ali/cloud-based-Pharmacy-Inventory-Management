@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import { TbPill } from 'react-icons/tb';
+import Modal from '../Modal';
 
 const buildInitialForm = () => ({
   batchNumber: '',
@@ -74,16 +75,15 @@ const AddStockModal = ({ medicine, onSubmit, submitting, onClose }) => {
   };
 
   const inputClass = (field) =>
-    `w-full px-4 py-3 border rounded-2xl text-sm focus:outline-none focus:border-[#346560] focus:ring-4 focus:ring-[#346560]/10 placeholder:text-slate-400 ${
+    `w-full px-4 py-3 border rounded-2xl text-sm focus:outline-none focus:border-brandPrimary focus:ring-4 focus:ring-brandPrimary/10 placeholder:text-slate-400 ${
       errors[field] ? 'border-red-400' : 'border-slate-200'
     }`;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-slate-100 animate-in fade-in zoom-in duration-150">
+    <Modal onClose={submitting ? undefined : onClose} maxWidth="lg" className="max-h-[90vh] overflow-y-auto">
         <div className="flex items-start justify-between gap-4 p-6 sm:p-7 pb-0">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-[#f0f7f6] flex items-center justify-center text-[#346560] shrink-0 overflow-hidden">
+            <div className="w-11 h-11 rounded-2xl bg-primary-50 flex items-center justify-center text-brandPrimary shrink-0 overflow-hidden">
               {medicine.imageUrl ? (
                 <img src={medicine.imageUrl} alt={medicine.name} className="w-full h-full object-contain" />
               ) : (
@@ -91,7 +91,7 @@ const AddStockModal = ({ medicine, onSubmit, submitting, onClose }) => {
               )}
             </div>
             <div className="min-w-0">
-              <h3 className="text-base font-bold text-slate-900 font-serif truncate">{medicine.name}</h3>
+              <h3 className="text-base font-bold text-slate-900 font-display truncate">{medicine.name}</h3>
               <p className="text-xs text-slate-500 truncate">{medicine.manufacturer}</p>
             </div>
           </div>
@@ -216,14 +216,13 @@ const AddStockModal = ({ medicine, onSubmit, submitting, onClose }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-2.5 rounded-2xl bg-[#346560] hover:bg-[#2b5450] disabled:opacity-60 text-white text-sm font-semibold transition-colors shadow-lg shadow-[#346560]/20"
+              className="px-6 py-2.5 rounded-2xl bg-brandPrimary hover:bg-brandPrimaryHover disabled:opacity-60 text-white text-sm font-semibold transition-colors shadow-lg shadow-brandPrimary/20"
             >
               {submitting ? 'Adding...' : 'Add to Inventory'}
             </button>
           </div>
         </form>
-      </div>
-    </div>
+    </Modal>
   );
 };
 

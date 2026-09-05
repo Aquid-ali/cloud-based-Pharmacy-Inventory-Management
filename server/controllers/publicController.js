@@ -37,4 +37,26 @@ const getPublicStats = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { getPublicStats };
+/**
+ * @desc    A small preview of real, active pharmacies for the public landing
+ *          page's discovery section. Deliberately minimal fields only (name +
+ *          location) - no phone/email/owner, which stay behind auth. Never
+ *          fabricates ratings, hours, or distance; the client shows only what
+ *          is actually returned here.
+ * @route   GET /api/public/pharmacies
+ * @access  Public
+ */
+const getPublicPharmacies = asyncHandler(async (req, res) => {
+  try {
+    const pharmacies = await Pharmacy.find({ status: 'active' })
+      .select('name address city state pincode location createdAt')
+      .sort({ createdAt: -1 })
+      .limit(6);
+
+    res.status(200).json({ success: true, data: pharmacies });
+  } catch (error) {
+    res.status(200).json({ success: true, data: [] });
+  }
+});
+
+module.exports = { getPublicStats, getPublicPharmacies };

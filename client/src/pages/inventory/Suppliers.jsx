@@ -17,7 +17,7 @@ const Suppliers = () => (
     title="Suppliers"
     description="Manage supplier contacts and track purchase order history."
     stats={[
-      { icon: FiTruck, label: 'Total Suppliers', value: suppliersData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiTruck, label: 'Total Suppliers', value: suppliersData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiCheckCircle, label: 'Active', value: suppliersData.filter((s) => s.status === 'Active').length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiClipboard, label: 'Total Orders', value: suppliersData.reduce((s, sup) => s + sup.orders, 0), bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },
     ]}

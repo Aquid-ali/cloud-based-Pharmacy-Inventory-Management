@@ -10,10 +10,8 @@ import {
   FiBarChart2,
   FiTrendingUp,
   FiSettings,
-  FiUsers,
-  FiLock,
-  FiKey,
   FiDatabase,
+  FiMessageCircle,
 } from 'react-icons/fi';
 import { TbPill } from 'react-icons/tb';
 
@@ -27,6 +25,11 @@ export const navigation = [
     label: 'Customer Orders',
     icon: FiShoppingBag,
     to: '/orders',
+  },
+  {
+    label: 'Messages',
+    icon: FiMessageCircle,
+    to: '/messages',
   },
   {
     label: 'Inventory',
@@ -59,13 +62,14 @@ export const navigation = [
     ],
   },
   {
-    label: 'Settings',
+    // Only Pharmacy Profile is real functionality today - User Management/
+    // Security/API Keys are mock-data scaffolding with no backend behind
+    // them, so they're deliberately not linked here (see pages/settings/
+    // UserManagement.jsx, Security.jsx, ApiKeys.jsx - still reachable
+    // directly by URL for future work, just not one click away). A single
+    // real destination doesn't need its own collapsible section.
+    label: 'Pharmacy Settings',
     icon: FiSettings,
-    children: [
-      { label: 'Pharmacy Profile', to: '/settings/profile', icon: FiSettings },
-      { label: 'User Management', to: '/settings/users', icon: FiUsers },
-      { label: 'Security', to: '/settings/security', icon: FiLock },
-      { label: 'API Keys', to: '/settings/api-keys', icon: FiKey },
-    ],
+    to: '/settings/profile',
   },
 ];

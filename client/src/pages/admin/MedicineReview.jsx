@@ -81,13 +81,13 @@ const ReviewCard = ({ medicine, onResolved }) => {
                 onChange={(e) => setNameDraft(e.target.value)}
                 className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-sm"
               />
-              <button onClick={handleSaveName} disabled={busy} className="text-xs font-semibold text-white bg-[#346560] px-3 py-2 rounded-xl disabled:opacity-50">
+              <button onClick={handleSaveName} disabled={busy} className="text-xs font-semibold text-white bg-brandPrimary px-3 py-2 rounded-xl disabled:opacity-50">
                 Save & Re-enrich
               </button>
               <button onClick={() => setEditing(false)} className="text-xs text-slate-500 px-2">Cancel</button>
             </div>
           ) : (
-            <h3 className="text-base font-bold text-slate-900 font-serif">{medicine.name}</h3>
+            <h3 className="text-base font-bold text-slate-900 font-display">{medicine.name}</h3>
           )}
           <p className="text-xs text-slate-500 mt-0.5">{medicine.manufacturer}</p>
         </div>
@@ -118,7 +118,7 @@ const ReviewCard = ({ medicine, onResolved }) => {
           onClick={handleApprove}
           disabled={busy || Object.keys(proposal).length === 0}
           title={Object.keys(proposal).length === 0 ? 'No proposal to approve - try Retry first' : ''}
-          className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#346560] hover:bg-[#2b5450] px-4 py-2 rounded-xl disabled:opacity-40"
+          className="flex items-center gap-1.5 text-xs font-semibold text-white bg-brandPrimary hover:bg-brandPrimaryHover px-4 py-2 rounded-xl disabled:opacity-40"
         >
           <FiCheckCircle size={14} /> Approve
         </button>
@@ -171,7 +171,7 @@ const MedicineReview = () => {
 
   return (
     <div className="space-y-6">
-      <Link to="/medicine-data" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-[#346560]">
+      <Link to="/medicine-data" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-brandPrimary">
         <FiArrowLeft size={14} /> Back to Medicine Data Management
       </Link>
 

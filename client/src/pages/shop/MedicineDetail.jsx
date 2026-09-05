@@ -37,7 +37,7 @@ const MedicineDetail = () => {
   if (!medicine) {
     return (
       <div className="space-y-4">
-        <Link to="/shop/search" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-tealPrimary">
+        <Link to="/shop/search" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary">
           <FiArrowLeft size={14} /> Back to results
         </Link>
         <div className="bg-white rounded-3xl border border-slate-200/80">
@@ -59,12 +59,12 @@ const MedicineDetail = () => {
 
   return (
     <div className="space-y-4">
-      <Link to="/shop/search" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-tealPrimary">
+      <Link to="/shop/search" className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary">
         <FiArrowLeft size={14} /> Back to results
       </Link>
 
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
-        <div className="w-full aspect-square rounded-2xl bg-primary-50 flex items-center justify-center text-tealPrimary">
+        <div className="w-full aspect-square rounded-2xl bg-primary-50 flex items-center justify-center text-brandPrimary">
           <TbPill className="w-20 h-20 transform -rotate-45" />
         </div>
 
@@ -72,12 +72,12 @@ const MedicineDetail = () => {
           <span className={`inline-flex self-start items-center px-2.5 py-1 rounded-full text-xs font-semibold border mb-3 ${stockTint[medicine.status]}`}>
             {medicine.status}
           </span>
-          <h1 className="text-2xl font-bold font-serif text-ink mb-1">{medicine.medicineName}</h1>
+          <h1 className="text-2xl font-bold font-display text-ink mb-1">{medicine.medicineName}</h1>
           <p className="text-sm text-ink-soft mb-2">
             {medicine.genericName ? `${medicine.genericName} · ` : ''}{medicine.manufacturer}
           </p>
           {medicine.store?.name && (
-            <p className="flex items-center gap-1.5 text-xs text-tealPrimary font-medium mb-4">
+            <p className="flex items-center gap-1.5 text-xs text-brandPrimary font-medium mb-4">
               <FiMapPin size={13} className="shrink-0" />
               Sold by {medicine.store.name}
             </p>
@@ -93,14 +93,14 @@ const MedicineDetail = () => {
             <div className="flex items-center border border-slate-200 rounded-2xl">
               <button
                 onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="p-3 text-slate-500 hover:text-tealPrimary"
+                className="p-3 text-slate-500 hover:text-brandPrimary"
               >
                 <FiMinus size={14} />
               </button>
               <span className="w-8 text-center text-sm font-semibold">{qty}</span>
               <button
                 onClick={() => setQty((q) => Math.min(medicine.quantity, q + 1))}
-                className="p-3 text-slate-500 hover:text-tealPrimary"
+                className="p-3 text-slate-500 hover:text-brandPrimary"
               >
                 <FiPlus size={14} />
               </button>

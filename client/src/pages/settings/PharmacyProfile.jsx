@@ -4,9 +4,10 @@ import PageHeader from '../../components/PageHeader';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
 import { getPharmacyById, updatePharmacy } from '../../services/pharmacyService';
+import PharmacySingleLocationMap from '../../components/map/PharmacySingleLocationMap';
 import useAuth from '../../hooks/useAuth';
 
-const inputClass = 'w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]';
+const inputClass = 'w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary';
 const labelClass = 'block text-xs font-medium text-slate-500 mb-1.5';
 
 const buildForm = (pharmacy) => ({
@@ -28,6 +29,10 @@ const PharmacyProfile = () => {
   const [form, setForm] = useState(buildForm(null));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Set only when the admin drags the preview pin - takes priority over
+  // re-geocoding the address on the next save, and is cleared once that
+  // save succeeds (the fresh saved location becomes the new displayed one).
+  const [manualLocation, setManualLocation] = useState(null);
 
   useEffect(() => {
     if (!pharmacyId) {
@@ -58,10 +63,12 @@ const PharmacyProfile = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const { data } = await updatePharmacy(pharmacyId, form);
+      const payload = manualLocation ? { ...form, manualLocation } : form;
+      const { data } = await updatePharmacy(pharmacyId, payload);
       const updated = data.data.pharmacy;
       setPharmacy(updated);
       setForm(buildForm(updated));
+      setManualLocation(null);
       // Refresh the cached pharmacy name app-wide (Navbar, Dashboard, etc.)
       // immediately, without requiring the admin to log out and back in.
       updateUser({ pharmacyId: updated });
@@ -72,6 +79,10 @@ const PharmacyProfile = () => {
       setSaving(false);
     }
   };
+
+  // The preview shows the pending manual pin position if the admin just
+  // dragged it, otherwise the last-saved location from the server.
+  const previewLocation = manualLocation || pharmacy?.location || null;
 
   if (!pharmacyId) {
     return (
@@ -141,10 +152,21 @@ const PharmacyProfile = () => {
             </select>
           </div>
         </div>
+
+        <div>
+          <label className={labelClass}>Location preview</label>
+          <PharmacySingleLocationMap location={previewLocation} onDragEnd={setManualLocation} />
+          <p className="text-[11px] text-slate-400 mt-1.5">
+            {manualLocation
+              ? 'Pin manually adjusted — this exact position will be saved (no re-geocoding) when you save.'
+              : 'Saving a changed address automatically re-geocodes it. You can also drag the pin to correct minor inaccuracies.'}
+          </p>
+        </div>
+
         <button
           type="submit"
           disabled={saving}
-          className="px-5 py-2.5 bg-[#346560] text-white rounded-2xl text-sm font-semibold hover:bg-[#2a524e] disabled:opacity-60 transition-colors"
+          className="px-5 py-2.5 bg-brandPrimary text-white rounded-2xl text-sm font-semibold hover:bg-brandPrimaryHover disabled:opacity-60 transition-colors"
         >
           {saving ? 'Saving...' : 'Save Profile'}
         </button>

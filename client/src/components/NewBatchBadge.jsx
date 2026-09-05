@@ -23,7 +23,7 @@ const NewBatchBadge = () => {
 
   return (
     <span
-      className={`absolute top-2 left-2 z-10 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-[#4ecdc4] text-[#1c3734] shadow-md transition-all duration-300 ${
+      className={`absolute top-2 left-2 z-10 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide bg-accentCyan text-brandDark shadow-md transition-all duration-300 ${
         phase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'
       }`}
     >

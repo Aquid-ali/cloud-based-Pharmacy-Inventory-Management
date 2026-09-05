@@ -9,7 +9,7 @@ const PurchaseReport = () => (
     title="Purchase Report"
     description="Analyze purchase spending, supplier performance, and order trends."
     stats={[
-      { icon: FiDollarSign, label: 'Total Spent', value: reportSummary.purchase.total, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiDollarSign, label: 'Total Spent', value: reportSummary.purchase.total, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiClipboard, label: 'Total Orders', value: reportSummary.purchase.orders, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiClock, label: 'Pending', value: reportSummary.purchase.pending, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
       { icon: FiTruck, label: 'Suppliers', value: reportSummary.purchase.suppliers, bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },

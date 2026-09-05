@@ -2,8 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const VARIANTS = {
-  primary: 'bg-tealPrimary hover:bg-tealHover text-white shadow-brand',
-  secondary: 'bg-white hover:bg-slate-50 text-tealPrimary border border-tealPrimary/20',
+  primary: 'bg-brandPrimary hover:bg-brandPrimaryHover text-white shadow-brand',
+  secondary: 'bg-white hover:bg-slate-50 text-brandPrimary border border-brandPrimary/20',
   ghost: 'bg-transparent hover:bg-black/5 text-ink',
   danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/20',
 };
@@ -16,7 +16,7 @@ const SIZES = {
 
 /**
  * Shared button primitive. Renders a <Link> when `to` is given, otherwise a
- * <button>. Consolidates the hand-rolled `bg-[#346560] ... rounded-2xl`
+ * <button>. Consolidates the hand-rolled `bg-brandPrimary ... rounded-2xl`
  * button block that was previously copy-pasted across ~10 files.
  */
 const Button = ({

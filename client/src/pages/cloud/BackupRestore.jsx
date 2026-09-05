@@ -23,22 +23,22 @@ const BackupRestore = () => {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <StatCard icon={FiCloud} label="Last Backup" value="Today" subtext="2026-08-05 02:00 AM" bgTint="bg-[#346560]/10" iconColor="text-[#346560]" borderColor="border-[#346560]/20" />
+        <StatCard icon={FiCloud} label="Last Backup" value="Today" subtext="2026-08-05 02:00 AM" bgTint="bg-brandPrimary/10" iconColor="text-brandPrimary" borderColor="border-brandPrimary/20" />
         <StatCard icon={FiCheckCircle} label="Status" value="Healthy" bgTint="bg-emerald-500/10" iconColor="text-emerald-600" borderColor="border-emerald-500/20" />
         <StatCard icon={FiClock} label="Backup Size" value="24.5 MB" bgTint="bg-blue-500/10" iconColor="text-blue-600" borderColor="border-blue-500/20" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
-          <div className="w-12 h-12 rounded-2xl bg-[#346560]/10 text-[#346560] flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-brandPrimary/10 text-brandPrimary flex items-center justify-center mb-4">
             <FiDownload size={24} />
           </div>
-          <h3 className="font-serif font-bold text-slate-800 mb-2">Create Backup</h3>
+          <h3 className="font-display font-bold text-slate-800 mb-2">Create Backup</h3>
           <p className="text-sm text-slate-500 mb-5">Export all pharmacy data including inventory, sales, and customer records.</p>
           <button
             onClick={handleBackup}
             disabled={backing}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#346560] text-white rounded-2xl text-sm font-semibold hover:bg-[#2a524e] transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brandPrimary text-white rounded-2xl text-sm font-semibold hover:bg-brandPrimaryHover transition-colors disabled:opacity-60"
           >
             <FiCloud size={16} />
             {backing ? 'Backing up...' : 'Backup Now'}
@@ -49,7 +49,7 @@ const BackupRestore = () => {
           <div className="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center mb-4">
             <FiUpload size={24} />
           </div>
-          <h3 className="font-serif font-bold text-slate-800 mb-2">Restore Data</h3>
+          <h3 className="font-display font-bold text-slate-800 mb-2">Restore Data</h3>
           <p className="text-sm text-slate-500 mb-5">Restore from a previous backup. This will overwrite current data.</p>
           <button
             onClick={() => toast.error('Restore requires admin confirmation')}
@@ -62,7 +62,7 @@ const BackupRestore = () => {
       </div>
 
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
-        <h3 className="font-serif font-bold text-slate-800 mb-4">Recent Backups</h3>
+        <h3 className="font-display font-bold text-slate-800 mb-4">Recent Backups</h3>
         <div className="divide-y divide-slate-100">
           {[
             { date: '2026-08-05 02:00 AM', size: '24.5 MB', type: 'Automatic' },
@@ -74,7 +74,7 @@ const BackupRestore = () => {
                 <p className="font-semibold text-slate-800">{backup.date}</p>
                 <p className="text-xs text-slate-500">{backup.type} · {backup.size}</p>
               </div>
-              <button className="text-[#346560] text-xs font-semibold hover:underline">Download</button>
+              <button className="text-brandPrimary text-xs font-semibold hover:underline">Download</button>
             </div>
           ))}
         </div>

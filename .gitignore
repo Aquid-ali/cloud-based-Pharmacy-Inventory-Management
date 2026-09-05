@@ -5,3 +5,6 @@ build/
 .env.local
 *.log
 .DS_Store
+
+# User-uploaded chat attachments (local disk storage - see server/middleware/chatUploadMiddleware.js)
+server/uploads/

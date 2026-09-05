@@ -1,18 +1,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { FiSearch, FiEdit2, FiTrash2, FiEye, FiPlus, FiFilter, FiChevronLeft, FiChevronRight, FiUploadCloud } from 'react-icons/fi';
+import { FiSearch, FiEdit2, FiTrash2, FiEye, FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { getMedicines, deleteMedicine } from '../services/medicineService';
 import Spinner from '../components/Spinner';
 import EmptyState from '../components/EmptyState';
 import ConfirmModal from '../components/ConfirmModal';
-
-const statusBadge = {
-  'In Stock': 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  'Low Stock': 'bg-amber-50 text-amber-700 border-amber-200',
-  'Out of Stock': 'bg-slate-100 text-slate-700 border-slate-200',
-  Expired: 'bg-rose-50 text-rose-700 border-rose-200',
-};
+import Pagination from '../components/Pagination';
+import { stockTint } from '../utils/stockStatus';
 
 const MedicineList = () => {
   const [medicines, setMedicines] = useState([]);
@@ -82,7 +77,7 @@ const MedicineList = () => {
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-serif text-slate-900 mb-1">
+          <h1 className="text-2xl font-bold font-display text-slate-900 mb-1">
             Medicine Inventory
           </h1>
           <p className="text-xs text-slate-500">
@@ -99,7 +94,7 @@ const MedicineList = () => {
           </Link>
           <Link
             to="/medicines/add"
-            className="flex items-center justify-center gap-2 bg-[#346560] hover:bg-[#2b5450] text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg shadow-[#346560]/20 transition-all"
+            className="flex items-center justify-center gap-2 bg-brandPrimary hover:bg-brandPrimaryHover text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg shadow-brandPrimary/20 transition-all"
           >
             <FiPlus size={18} />
             <span>Add Medicine</span>
@@ -120,7 +115,7 @@ const MedicineList = () => {
               setSearch(e.target.value);
               setPage(1);
             }}
-            className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-[#346560] focus:ring-4 focus:ring-[#346560]/10 placeholder:text-slate-400"
+            className="w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-2xl text-sm focus:outline-none focus:border-brandPrimary focus:ring-4 focus:ring-brandPrimary/10 placeholder:text-slate-400"
           />
         </div>
 
@@ -132,7 +127,7 @@ const MedicineList = () => {
               setCategory(e.target.value);
               setPage(1);
             }}
-            className="px-3.5 py-2.5 border border-slate-200 rounded-2xl text-sm text-slate-700 bg-white focus:outline-none focus:border-[#346560] cursor-pointer"
+            className="px-3.5 py-2.5 border border-slate-200 rounded-2xl text-sm text-slate-700 bg-white focus:outline-none focus:border-brandPrimary cursor-pointer"
           >
             <option value="">All Categories</option>
             <option value="Tablet">Tablet</option>
@@ -152,7 +147,7 @@ const MedicineList = () => {
               setExpiry(e.target.value);
               setPage(1);
             }}
-            className="px-3.5 py-2.5 border border-slate-200 rounded-2xl text-sm text-slate-700 bg-white focus:outline-none focus:border-[#346560] cursor-pointer"
+            className="px-3.5 py-2.5 border border-slate-200 rounded-2xl text-sm text-slate-700 bg-white focus:outline-none focus:border-brandPrimary cursor-pointer"
           >
             <option value="">All Expiry Status</option>
             <option value="valid">Valid</option>
@@ -169,7 +164,7 @@ const MedicineList = () => {
               setOrder(o);
               setPage(1);
             }}
-            className="px-3.5 py-2.5 border border-slate-200 rounded-2xl text-sm text-slate-700 bg-white focus:outline-none focus:border-[#346560] cursor-pointer"
+            className="px-3.5 py-2.5 border border-slate-200 rounded-2xl text-sm text-slate-700 bg-white focus:outline-none focus:border-brandPrimary cursor-pointer"
           >
             <option value="createdAt-desc">Newest First</option>
             <option value="medicineName-asc">Name (A-Z)</option>
@@ -194,7 +189,7 @@ const MedicineList = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-700">
-              <thead className="bg-[#f7f9f8] text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200/80">
+              <thead className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200/80">
                 <tr>
                   <th className="py-4 px-6">Medicine</th>
                   <th className="py-4 px-4">Category</th>
@@ -208,7 +203,7 @@ const MedicineList = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {medicines.map((item) => (
-                  <tr key={item._id} className="hover:bg-[#f0f7f6]/50 transition-colors">
+                  <tr key={item._id} className="hover:bg-primary-50/50 transition-colors">
                     <td className="py-4 px-6">
                       <div className="font-semibold text-slate-900">{item.medicineName}</div>
                       <div className="text-xs text-slate-400">
@@ -235,7 +230,7 @@ const MedicineList = () => {
                     <td className="py-4 px-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
-                          statusBadge[item.status] || 'bg-slate-100 text-slate-700'
+                          stockTint[item.status] || 'bg-slate-100 text-slate-700'
                         }`}
                       >
                         {item.status}
@@ -245,7 +240,7 @@ const MedicineList = () => {
                       <div className="flex items-center justify-end gap-2">
                         <Link
                           to={`/medicines/${item._id}`}
-                          className="p-2 text-slate-400 hover:text-[#346560] hover:bg-[#346560]/10 rounded-xl transition-colors"
+                          className="p-2 text-slate-400 hover:text-brandPrimary hover:bg-brandPrimary/10 rounded-xl transition-colors"
                           title="View details"
                         >
                           <FiEye size={16} />
@@ -275,27 +270,13 @@ const MedicineList = () => {
 
         {/* Pagination Bar */}
         {!loading && medicines.length > 0 && (
-          <div className="py-4 px-6 bg-[#f7f9f8] border-t border-slate-200/80 flex items-center justify-between">
-            <span className="text-xs text-slate-500">
-              Page {page} of {pagination.totalPages}
-            </span>
-            <div className="flex items-center gap-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-              >
-                <FiChevronLeft size={16} />
-              </button>
-              <button
-                disabled={page >= pagination.totalPages}
-                onClick={() => setPage((p) => p + 1)}
-                className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition-colors"
-              >
-                <FiChevronRight size={16} />
-              </button>
-            </div>
-          </div>
+          <Pagination
+            page={page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            total={pagination.total}
+            itemLabel="medicines"
+          />
         )}
       </div>
 

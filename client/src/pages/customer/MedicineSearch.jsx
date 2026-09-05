@@ -67,7 +67,7 @@ const MedicineSearch = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold font-serif text-ink">Medicine Search</h1>
+        <h1 className="text-xl font-bold font-display text-ink">Medicine Search</h1>
         <p className="text-xs text-ink-faint mt-1">
           Search our full medicine catalog by name, composition, or manufacturer.
         </p>
@@ -95,7 +95,7 @@ const MedicineSearch = () => {
           <div className="w-16 h-16 rounded-3xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
             <FiAlertCircle size={32} />
           </div>
-          <h3 className="text-base font-bold text-ink font-serif mb-1">We couldn't load your medicines</h3>
+          <h3 className="text-base font-bold text-ink font-display mb-1">We couldn't load your medicines</h3>
           <p className="text-xs text-ink-faint max-w-sm leading-relaxed mb-4">{error}</p>
           <Button size="sm" onClick={() => fetchMedicines(query, 1, false)}>
             Try again

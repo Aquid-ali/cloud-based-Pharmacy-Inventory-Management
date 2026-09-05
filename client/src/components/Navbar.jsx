@@ -17,15 +17,15 @@ const Navbar = ({ onMenuClick }) => {
 
       <div className="flex items-center gap-4">
         {/* User Info */}
-        <div className="flex items-center gap-3 bg-[#f0f7f6] py-1.5 px-3 rounded-2xl border border-[#346560]/10">
-          <div className="w-7 h-7 rounded-xl bg-[#346560] text-white flex items-center justify-center text-xs font-bold">
+        <div className="flex items-center gap-3 bg-primary-50 py-1.5 px-3 rounded-2xl border border-brandPrimary/10">
+          <div className="w-7 h-7 rounded-xl bg-brandPrimary text-white flex items-center justify-center text-xs font-bold">
             {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="text-left">
             <span className="font-semibold text-slate-800 text-xs block leading-tight">
               {user?.fullName}
             </span>
-            <span className="text-[10px] text-[#346560] font-medium leading-none">
+            <span className="text-[10px] text-brandPrimary font-medium leading-none">
               {user?.role === 'Admin' && (user?.pharmacyId?.name || user?.store?.name)
                 ? user.pharmacyId?.name || user.store?.name
                 : user?.role}

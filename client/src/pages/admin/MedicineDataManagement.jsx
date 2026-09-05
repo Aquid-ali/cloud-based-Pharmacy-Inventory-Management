@@ -8,6 +8,7 @@ import {
 import PageHeader from '../../components/PageHeader';
 import StatCard from '../../components/StatCard';
 import Spinner from '../../components/Spinner';
+import Pagination from '../../components/Pagination';
 import { getCatalogMedicines } from '../../services/medicineCatalogService';
 import {
   enrichMedicine, enrichAllMedicines, retryFailedMedicines, getEnrichmentStats,
@@ -153,7 +154,7 @@ const MedicineDataManagement = () => {
             <button
               onClick={handleEnrichAll}
               disabled={bulkBusy || isBulkRunning}
-              className="flex items-center gap-2 bg-[#4ecdc4] text-[#1c3734] font-semibold text-sm px-4 py-2.5 rounded-2xl hover:bg-[#3dbdb5] transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 bg-accentCyan text-brandDark font-semibold text-sm px-4 py-2.5 rounded-2xl hover:bg-accentCyanHover transition-colors disabled:opacity-50"
             >
               <FiZap size={15} /> {isBulkRunning ? 'Enriching…' : 'Enrich All Medicines'}
             </button>
@@ -179,7 +180,7 @@ const MedicineDataManagement = () => {
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-            <StatCard icon={FiDatabase} label="Total Medicines" value={stats?.total ?? 0} bgTint="bg-[#346560]/10" iconColor="text-[#346560]" borderColor="border-[#346560]/20" />
+            <StatCard icon={FiDatabase} label="Total Medicines" value={stats?.total ?? 0} bgTint="bg-brandPrimary/10" iconColor="text-brandPrimary" borderColor="border-brandPrimary/20" />
             <StatCard icon={FiCheckCircle} label="Completed" value={stats?.completed ?? 0} bgTint="bg-emerald-500/10" iconColor="text-emerald-600" borderColor="border-emerald-500/20" />
             <StatCard icon={FiClock} label="Pending" value={stats?.pending ?? 0} bgTint="bg-slate-500/10" iconColor="text-slate-600" borderColor="border-slate-500/20" />
             <StatCard icon={FiLoader} label="Processing" value={stats?.processing ?? 0} bgTint="bg-blue-500/10" iconColor="text-blue-600" borderColor="border-blue-500/20" />
@@ -193,7 +194,7 @@ const MedicineDataManagement = () => {
               <span className="text-sm font-bold text-slate-900">{progressPct}%</span>
             </div>
             <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-[#346560] transition-all" style={{ width: `${progressPct}%` }} />
+              <div className="h-full bg-brandPrimary transition-all" style={{ width: `${progressPct}%` }} />
             </div>
             {isBulkRunning && (
               <p className="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
@@ -218,7 +219,7 @@ const MedicineDataManagement = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search medicines..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]"
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary"
           />
         </div>
 
@@ -254,7 +255,7 @@ const MedicineDataManagement = () => {
                         <button
                           onClick={() => handleRowEnrich(m, true)}
                           disabled={rowBusyId === m._id}
-                          className="text-xs font-semibold text-[#346560] hover:text-[#2b5450] disabled:opacity-50"
+                          className="text-xs font-semibold text-brandPrimary hover:text-brandPrimaryHover disabled:opacity-50"
                         >
                           {rowBusyId === m._id ? 'Refreshing…' : 'Refresh Information'}
                         </button>
@@ -262,7 +263,7 @@ const MedicineDataManagement = () => {
                         <button
                           onClick={() => handleRowEnrich(m, false)}
                           disabled={rowBusyId === m._id}
-                          className="text-xs font-semibold text-white bg-[#346560] hover:bg-[#2b5450] px-3 py-1.5 rounded-xl disabled:opacity-50"
+                          className="text-xs font-semibold text-white bg-brandPrimary hover:bg-brandPrimaryHover px-3 py-1.5 rounded-xl disabled:opacity-50"
                         >
                           {rowBusyId === m._id ? 'Enriching…' : m.enrichmentStatus === 'failed' ? 'Retry' : 'Enrich'}
                         </button>
@@ -276,27 +277,13 @@ const MedicineDataManagement = () => {
         )}
 
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between mt-5 text-sm">
-            <span className="text-slate-500">
-              Page {pagination.page} of {pagination.totalPages} ({pagination.total} medicines)
-            </span>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={pagination.page <= 1}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 disabled:opacity-40"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
-                disabled={pagination.page >= pagination.totalPages}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            total={pagination.total}
+            itemLabel="medicines"
+          />
         )}
       </div>
     </div>

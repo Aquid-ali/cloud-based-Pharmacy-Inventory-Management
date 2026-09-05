@@ -233,7 +233,7 @@ const ImportMedicines = () => {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             className={`rounded-2xl border-2 border-dashed p-8 text-center transition-colors ${
-              isDragging ? 'border-[#346560] bg-[#346560]/5' : 'border-slate-200 bg-slate-50/50'
+              isDragging ? 'border-brandPrimary bg-brandPrimary/5' : 'border-slate-200 bg-slate-50/50'
             }`}
           >
             <input
@@ -246,21 +246,21 @@ const ImportMedicines = () => {
 
             {!file ? (
               <>
-                <div className="w-14 h-14 rounded-2xl bg-[#346560]/10 text-[#346560] flex items-center justify-center mx-auto mb-4">
+                <div className="w-14 h-14 rounded-2xl bg-brandPrimary/10 text-brandPrimary flex items-center justify-center mx-auto mb-4">
                   <FiUploadCloud size={26} />
                 </div>
                 <p className="text-sm font-medium text-slate-700 mb-1">Drag and drop your CSV file here</p>
                 <p className="text-xs text-slate-400 mb-4">or</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-[#346560] hover:bg-[#2b5450] text-white text-sm font-medium px-6 py-3 rounded-2xl shadow-lg shadow-[#346560]/20 transition-all"
+                  className="bg-brandPrimary hover:bg-brandPrimaryHover text-white text-sm font-medium px-6 py-3 rounded-2xl shadow-lg shadow-brandPrimary/20 transition-all"
                 >
                   Choose CSV File
                 </button>
               </>
             ) : (
               <div className="flex items-center justify-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-[#346560]/10 text-[#346560] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-xl bg-brandPrimary/10 text-brandPrimary flex items-center justify-center shrink-0">
                   <FiFile size={20} />
                 </div>
                 <div className="text-left">
@@ -376,7 +376,7 @@ const ImportMedicines = () => {
               {importing && (
                 <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-[#346560] transition-all"
+                    className="h-full bg-brandPrimary transition-all"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -403,7 +403,7 @@ const ImportMedicines = () => {
                   <button
                     onClick={handleImport}
                     disabled={importing || validRows.length === 0}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-[#346560] hover:bg-[#2b5450] disabled:opacity-50 text-white text-sm font-medium px-6 py-3 rounded-2xl shadow-lg shadow-[#346560]/20 transition-all whitespace-nowrap"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-brandPrimary hover:bg-brandPrimaryHover disabled:opacity-50 text-white text-sm font-medium px-6 py-3 rounded-2xl shadow-lg shadow-brandPrimary/20 transition-all whitespace-nowrap"
                   >
                     {importing ? (
                       <>
@@ -488,7 +488,7 @@ const ImportMedicines = () => {
             </button>
             <button
               onClick={() => navigate('/medicines')}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#346560] hover:bg-[#2b5450] text-white text-sm font-medium px-6 py-3 rounded-2xl shadow-lg shadow-[#346560]/20 transition-all"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-brandPrimary hover:bg-brandPrimaryHover text-white text-sm font-medium px-6 py-3 rounded-2xl shadow-lg shadow-brandPrimary/20 transition-all"
             >
               View Medicine Inventory <FiArrowRight size={16} />
             </button>

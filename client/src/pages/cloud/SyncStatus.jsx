@@ -15,7 +15,7 @@ const SyncStatus = () => (
     title="Sync Status"
     description="Monitor cloud synchronization across all pharmacy modules."
     stats={[
-      { icon: FiRefreshCw, label: 'Modules', value: syncStatusData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiRefreshCw, label: 'Modules', value: syncStatusData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiCheckCircle, label: 'Synced', value: syncStatusData.filter((s) => s.status === 'Synced').length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiClock, label: 'Syncing', value: syncStatusData.filter((s) => s.status === 'Syncing').length, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
     ]}

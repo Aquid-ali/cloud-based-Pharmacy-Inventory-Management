@@ -15,7 +15,7 @@ const OrderNotifications = () => (
     title="Order Notifications"
     description="Purchase orders, sales requests, and delivery updates."
     stats={[
-      { icon: FiBell, label: 'Total', value: orderNotifications.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiBell, label: 'Total', value: orderNotifications.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiClock, label: 'Pending', value: orderNotifications.filter((n) => n.status === 'Pending').length, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
       { icon: FiCheckCircle, label: 'Completed', value: orderNotifications.filter((n) => n.status === 'Completed').length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
     ]}

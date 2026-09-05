@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-[#f2f6f5] text-ink antialiased;
+  @apply bg-canvas text-ink antialiased;
 }
 
 /* Custom scrollbar */

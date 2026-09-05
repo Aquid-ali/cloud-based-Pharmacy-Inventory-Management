@@ -21,6 +21,8 @@ const updatePharmacyValidator = [
   body('phone').optional().trim(),
   body('email').optional().isEmail().withMessage('Please provide a valid email'),
   body('status').optional().isIn(['active', 'inactive']).withMessage('Status must be active or inactive'),
+  body('manualLocation.lat').optional().isFloat({ min: -90, max: 90 }).withMessage('Invalid manual latitude'),
+  body('manualLocation.lng').optional().isFloat({ min: -180, max: 180 }).withMessage('Invalid manual longitude'),
 ];
 
 const idParamValidator = [param('id').isMongoId().withMessage('Invalid pharmacy id')];

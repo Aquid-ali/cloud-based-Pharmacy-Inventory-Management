@@ -24,7 +24,7 @@ const ReceiveStock = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-5">
-          <h3 className="font-serif font-bold text-slate-800 mb-4">Pending Deliveries</h3>
+          <h3 className="font-display font-bold text-slate-800 mb-4">Pending Deliveries</h3>
           <div className="space-y-3">
             {pendingOrders.map((order) => (
               <button
@@ -32,7 +32,7 @@ const ReceiveStock = () => {
                 onClick={() => setSelected(order)}
                 className={`w-full text-left p-4 rounded-2xl border transition-all ${
                   selected?.id === order.id
-                    ? 'border-[#346560] bg-[#346560]/5'
+                    ? 'border-brandPrimary bg-brandPrimary/5'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -50,7 +50,7 @@ const ReceiveStock = () => {
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
           {selected ? (
             <>
-              <h3 className="font-serif font-bold text-slate-800 mb-4">Receive {selected.id}</h3>
+              <h3 className="font-display font-bold text-slate-800 mb-4">Receive {selected.id}</h3>
               <div className="space-y-4 mb-6">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div><p className="text-slate-500 text-xs">Supplier</p><p className="font-semibold">{selected.supplier}</p></div>
@@ -63,13 +63,13 @@ const ReceiveStock = () => {
                   <textarea
                     rows={3}
                     placeholder="Optional notes about received stock..."
-                    className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]"
+                    className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary"
                   />
                 </div>
               </div>
               <button
                 onClick={handleReceive}
-                className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#346560] text-white rounded-2xl text-sm font-bold hover:bg-[#2a524e] transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 py-3 bg-brandPrimary text-white rounded-2xl text-sm font-bold hover:bg-brandPrimaryHover transition-colors"
               >
                 <FiCheck size={16} />
                 Confirm Receipt

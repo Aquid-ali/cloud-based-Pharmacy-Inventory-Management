@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { FiDollarSign, FiShoppingBag, FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
 import toast from 'react-hot-toast';
-import ReportPage, { ChartPlaceholder } from '../../components/ReportPage';
+import ReportPage from '../../components/ReportPage';
+import BarChart from '../../components/BarChart';
 import DataTable from '../../components/DataTable';
 import Spinner from '../../components/Spinner';
 import { getSales, getSalesStats } from '../../services/saleService';
@@ -45,15 +46,28 @@ const SalesReport = () => {
       title="Sales Report"
       description="Analyze sales performance, revenue trends, and transaction data."
       stats={[
-        { icon: FiDollarSign, label: 'Total Revenue', value: formatCurrency(stats?.totalRevenue), bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+        { icon: FiDollarSign, label: 'Total Revenue', value: formatCurrency(stats?.totalRevenue), bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
         { icon: FiShoppingBag, label: 'Total Orders', value: stats?.totalOrders ?? 0, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
         { icon: FiBarChart2, label: 'Avg. Order Value', value: formatCurrency(stats?.avgOrderValue), bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },
         { icon: FiTrendingUp, label: 'Growth (MoM)', value: formatPercent(stats?.growthPercent), bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
       ]}
     >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartPlaceholder title="Monthly Revenue Trend" />
-        <ChartPlaceholder title="Sales by Payment Method" />
+        <BarChart
+          title="Monthly Revenue Trend"
+          data={stats?.monthlyTrend || []}
+          series={[
+            { key: 'revenue', label: 'Revenue', color: 'bg-brandPrimary' },
+            { key: 'profit', label: 'Profit', color: 'bg-accentCyan' },
+          ]}
+          valueFormatter={formatCurrency}
+        />
+        <BarChart
+          title="Sales by Payment Method"
+          data={(stats?.paymentMethodBreakdown || []).map((p) => ({ label: p.method, revenue: p.revenue }))}
+          series={[{ key: 'revenue', label: 'Revenue', color: 'bg-brandPrimary' }]}
+          valueFormatter={formatCurrency}
+        />
       </div>
       <DataTable
         columns={[

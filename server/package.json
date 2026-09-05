@@ -13,6 +13,7 @@
     "seed:pharmacies": "node scripts/seedDemoPharmacies.js",
     "seed:pharmacy-admins": "node scripts/seedDemoPharmacyAdmins.js",
     "seed:inventory": "node scripts/seedDemoInventory.js",
+    "geocode:pharmacies": "node scripts/geocodePharmacyAddresses.js",
     "migrate:csv-medicines": "node scripts/migrateCsvMedicinesToCatalog.js",
     "backfill:enrichment-fields": "node scripts/backfillEnrichmentFields.js"
   },

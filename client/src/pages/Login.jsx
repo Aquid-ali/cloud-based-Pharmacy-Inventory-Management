@@ -37,17 +37,17 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#e9f7f5] to-white flex flex-col items-center justify-center p-4 selection:bg-[#4ecdc4]/30">
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white flex flex-col items-center justify-center p-4 selection:bg-accentCyan/30">
       {/* Brand Header */}
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-tealPrimary flex items-center justify-center text-white shadow-brand">
+        <div className="w-12 h-12 rounded-2xl bg-brandPrimary flex items-center justify-center text-white shadow-brand">
           <TbPill className="w-7 h-7 transform -rotate-45" />
         </div>
         <div>
-          <h1 className="font-serif text-2xl font-bold text-ink tracking-tight leading-none">
+          <h1 className="font-display text-2xl font-bold text-ink tracking-tight leading-none">
             MedStock
           </h1>
-          <p className="text-tealPrimary text-xs font-medium tracking-wide mt-1">
+          <p className="text-brandPrimary text-xs font-medium tracking-wide mt-1">
             Medicines, delivered
           </p>
         </div>
@@ -56,7 +56,7 @@ const Login = () => {
       {/* Card Container */}
       <div className="w-full max-w-md bg-white rounded-[28px] shadow-2xl shadow-slate-200 p-7 border border-slate-100">
         {/* Segmented Tab Switcher */}
-        <div className="bg-[#f7f5f4] p-1.5 rounded-2xl flex gap-1 mb-6 text-sm">
+        <div className="bg-slate-100 p-1.5 rounded-2xl flex gap-1 mb-6 text-sm">
           <button
             type="button"
             className="flex-1 py-2.5 rounded-xl font-medium text-ink bg-white shadow-sm transition-all text-center"
@@ -116,7 +116,7 @@ const Login = () => {
 
       <Link
         to="/admin/login"
-        className="mt-6 text-xs text-slate-400 hover:text-tealPrimary transition-colors"
+        className="mt-6 text-xs text-slate-400 hover:text-brandPrimary transition-colors"
       >
         Pharmacy staff? Sign in to the admin dashboard
       </Link>

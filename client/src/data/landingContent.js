@@ -1,9 +1,9 @@
 import {
   FiHeart, FiThermometer, FiSun, FiActivity, FiShield, FiDroplet,
   FiUser, FiSmile, FiUsers, FiWind, FiPackage, FiSearch, FiCheckCircle,
-  FiLock, FiBookOpen, FiTruck,
+  FiLock, FiBookOpen, FiTruck, FiMessageCircle, FiTrendingUp, FiMapPin,
 } from 'react-icons/fi';
-import { TbVaccine } from 'react-icons/tb';
+import { TbVaccine, TbLayoutDashboard } from 'react-icons/tb';
 
 // Curated categories, not a database table (the medicine catalog doesn't
 // carry therapeutic categories - see composition/uses instead). Each one
@@ -103,6 +103,29 @@ export const TESTIMONIALS = [
   },
 ];
 
+export const PHARMACY_OWNER_BENEFITS = [
+  {
+    title: 'Reach nearby customers',
+    description: 'Appear in search and map results for customers actively looking for what you stock.',
+    icon: FiMapPin,
+  },
+  {
+    title: 'One dashboard for everything',
+    description: 'Manage inventory, orders, billing, and staff from a single, connected admin panel.',
+    icon: TbLayoutDashboard,
+  },
+  {
+    title: 'Message customers directly',
+    description: 'Answer questions and confirm availability through built-in, secure chat.',
+    icon: FiMessageCircle,
+  },
+  {
+    title: 'Grow with real demand data',
+    description: 'See what customers are searching for and stock accordingly.',
+    icon: FiTrendingUp,
+  },
+];
+
 export const TRUST_STATEMENTS = [
   'Easy to Navigate',
   'Secure Authentication',
@@ -111,17 +134,13 @@ export const TRUST_STATEMENTS = [
 ];
 
 export const FOOTER_LINKS = {
-  Company: [
-    { label: 'About Us', to: '/#about' },
-    { label: 'Contact Us', to: '/contact' },
-  ],
-  Medicines: [
+  Explore: [
     { label: 'All Medicines', to: '/customer/medicines' },
-    { label: 'Categories', to: '/#categories' },
+    { label: 'Find Pharmacies', to: '/shop/stores' },
   ],
-  Healthcare: [
-    { label: 'Healthcare Tips', to: '/#healthcare-tips' },
-    { label: 'FAQs', to: '/faqs' },
+  'For Pharmacies': [
+    { label: 'Register Your Pharmacy', to: '/admin/register' },
+    { label: 'Pharmacy Login', to: '/admin/login' },
   ],
   Customer: [
     { label: 'Login', to: '/login' },

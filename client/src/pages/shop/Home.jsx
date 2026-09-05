@@ -5,6 +5,7 @@ import { FiMapPin } from 'react-icons/fi';
 import { browsePharmacyInventory } from '../../services/pharmacyService';
 import PharmacyMedicineCard from '../../components/shop/PharmacyMedicineCard';
 import EmptyState from '../../components/EmptyState';
+import ErrorState from '../../components/ErrorState';
 import { SkeletonCardGrid } from '../../components/Skeleton';
 import useCart from '../../hooks/useCart';
 
@@ -12,23 +13,28 @@ const Home = () => {
   const { pharmacyId, pharmacyName, clearPharmacy } = useCart();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchInventory = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const { data } = await browsePharmacyInventory({
+        pharmacyId: pharmacyId || undefined,
+        limit: 24,
+      });
+      setItems(data.data.inventory);
+    } catch (err) {
+      setError(true);
+      toast.error('Failed to load medicines');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchInventory = async () => {
-      setLoading(true);
-      try {
-        const { data } = await browsePharmacyInventory({
-          pharmacyId: pharmacyId || undefined,
-          limit: 24,
-        });
-        setItems(data.data.inventory);
-      } catch (error) {
-        toast.error('Failed to load medicines');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchInventory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pharmacyId]);
 
   return (
@@ -36,10 +42,10 @@ const Home = () => {
       {/* Hero */}
       <div className="bg-brandDark rounded-3xl px-6 sm:px-10 py-10 text-white flex flex-col sm:flex-row items-center justify-between gap-6">
         <div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-bold mb-2">Medicines from real pharmacies</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">Medicines from real pharmacies</h1>
           <p className="text-white/70 text-sm max-w-md">
             {pharmacyId ? (
-              <>Shopping from <span className="text-mintAccent font-medium">{pharmacyName}</span>. Search medicines, compare prices, and check stock.</>
+              <>Shopping from <span className="text-accentCyan font-medium">{pharmacyName}</span>. Search medicines, compare prices, and check stock.</>
             ) : (
               <>Browsing live stock from every MedStock pharmacy. Pick a pharmacy to narrow it down.</>
             )}
@@ -48,7 +54,7 @@ const Home = () => {
         <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
           <Link
             to="/shop/stores"
-            className="flex items-center gap-2 bg-mintAccent text-brandDark font-semibold text-sm px-6 py-3 rounded-2xl hover:bg-mintHover transition-colors"
+            className="flex items-center gap-2 bg-accentCyan text-brandDark font-semibold text-sm px-6 py-3 rounded-2xl hover:bg-accentCyanHover transition-colors"
           >
             <FiMapPin size={16} />
             {pharmacyId ? 'Change pharmacy' : 'Choose a pharmacy'}
@@ -66,11 +72,17 @@ const Home = () => {
 
       {/* Product grid */}
       <div>
-        <h2 className="text-lg font-bold font-serif text-ink mb-3">
+        <h2 className="text-lg font-bold font-display text-ink mb-3">
           {pharmacyId ? 'Available medicines' : 'Available from MedStock pharmacies'}
         </h2>
         {loading ? (
           <SkeletonCardGrid count={14} />
+        ) : error ? (
+          <ErrorState
+            title="Couldn't load medicines"
+            message="Something went wrong while loading available stock."
+            onRetry={fetchInventory}
+          />
         ) : items.length === 0 ? (
           <EmptyState
             title="No medicines available"

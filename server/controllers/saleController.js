@@ -231,6 +231,8 @@ const getSalesStats = asyncHandler(async (req, res) => {
     totalCost: 0,
     totalProfit: 0,
     profitMargin: 0,
+    monthlyTrend: [],
+    paymentMethodBreakdown: [],
   };
 
   if (!filter) {
@@ -241,8 +243,10 @@ const getSalesStats = asyncHandler(async (req, res) => {
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  // 5 full months back + the current month = a 6-month trend window.
+  const startOfTrendWindow = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
-  const [totals, todayAgg, monthAgg, lastMonthAgg] = await Promise.all([
+  const [totals, todayAgg, monthAgg, lastMonthAgg, monthlyTrendAgg, paymentMethodAgg] = await Promise.all([
     Sale.aggregate([
       { $match: filter },
       {
@@ -267,12 +271,55 @@ const getSalesStats = asyncHandler(async (req, res) => {
       { $match: { ...filter, createdAt: { $gte: startOfLastMonth, $lt: startOfMonth } } },
       { $group: { _id: null, revenue: { $sum: '$totalAmount' } } },
     ]),
+    // Real monthly revenue/cost/profit for the last 6 months - powers the
+    // Sales Report / Profit Analysis trend charts. Never fabricated: months
+    // with no sales simply don't appear (padded with zeros below).
+    Sale.aggregate([
+      { $match: { ...filter, createdAt: { $gte: startOfTrendWindow } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+          revenue: { $sum: '$totalAmount' },
+          cost: { $sum: '$totalCost' },
+          profit: { $sum: '$profit' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
+    // Real per-payment-method revenue split - powers the "Sales by Payment
+    // Method" chart.
+    Sale.aggregate([
+      { $match: filter },
+      { $group: { _id: '$paymentMethod', revenue: { $sum: '$totalAmount' }, count: { $sum: 1 } } },
+    ]),
   ]);
 
   const { totalRevenue = 0, totalOrders = 0, totalCost = 0, totalProfit = 0 } = totals[0] || {};
   const todayRevenue = todayAgg[0]?.revenue || 0;
   const monthRevenue = monthAgg[0]?.revenue || 0;
   const lastMonthRevenue = lastMonthAgg[0]?.revenue || 0;
+
+  // Zero-pad the trend to all 6 months (not just months with sales), so the
+  // chart always shows a consistent, honest window rather than a shorter
+  // one for newer pharmacies.
+  const trendByMonth = new Map(monthlyTrendAgg.map((m) => [m._id, m]));
+  const monthlyTrend = Array.from({ length: 6 }).map((_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const entry = trendByMonth.get(key);
+    return {
+      month: d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+      revenue: entry?.revenue || 0,
+      cost: entry?.cost || 0,
+      profit: entry?.profit || 0,
+    };
+  });
+
+  const paymentMethodBreakdown = paymentMethodAgg.map((p) => ({
+    method: p._id,
+    revenue: p.revenue,
+    count: p.count,
+  }));
 
   res.status(200).json({
     success: true,
@@ -286,6 +333,8 @@ const getSalesStats = asyncHandler(async (req, res) => {
       totalCost,
       totalProfit,
       profitMargin: totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0,
+      monthlyTrend,
+      paymentMethodBreakdown,
     },
   });
 });

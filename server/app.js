@@ -14,6 +14,7 @@ const medicineCatalogRoutes = require('./routes/medicineCatalogRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const saleRoutes = require('./routes/saleRoutes');
 const publicRoutes = require('./routes/publicRoutes');
+const conversationRoutes = require('./routes/conversationRoutes');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
@@ -80,6 +81,7 @@ app.use('/api/medicine-catalog', medicineCatalogRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/public', publicRoutes);
+app.use('/api/conversations', conversationRoutes);
 
 // 404 + centralized error handler (must be last)
 app.use(notFound);

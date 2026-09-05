@@ -17,7 +17,7 @@ const Batches = () => (
     title="Batches"
     description="Track batch numbers, manufacturing dates, and expiry information."
     stats={[
-      { icon: FiBox, label: 'Total Batches', value: batchesData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiBox, label: 'Total Batches', value: batchesData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiAlertTriangle, label: 'Low Stock', value: batchesData.filter((b) => b.status === 'Low Stock').length, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },
       { icon: FiXCircle, label: 'Expired', value: batchesData.filter((b) => b.status === 'Expired').length, bgTint: 'bg-rose-500/10', iconColor: 'text-rose-600', borderColor: 'border-rose-500/20' },
     ]}

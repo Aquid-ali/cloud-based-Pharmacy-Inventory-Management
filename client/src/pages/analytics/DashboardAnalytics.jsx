@@ -8,7 +8,7 @@ const DashboardAnalytics = () => (
     title="Dashboard Analytics"
     description="Comprehensive analytics overview for your pharmacy operations."
     stats={[
-      { icon: FiDollarSign, label: 'Monthly Revenue', value: '₹4.8L', bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiDollarSign, label: 'Monthly Revenue', value: '₹4.8L', bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiTrendingUp, label: 'Growth Rate', value: '+18%', bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiUsers, label: 'New Customers', value: 23, bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },
       { icon: FiGrid, label: 'Active SKUs', value: 156, bgTint: 'bg-amber-500/10', iconColor: 'text-amber-600', borderColor: 'border-amber-500/20' },

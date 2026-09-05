@@ -147,7 +147,7 @@ const POSBilling = () => {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search medicine by name..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]"
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary"
               />
               {query.trim() && (
                 <div className="absolute z-10 mt-2 w-full bg-white rounded-2xl border border-slate-200/80 shadow-lg max-h-72 overflow-y-auto">
@@ -223,13 +223,13 @@ const POSBilling = () => {
 
         <div className="space-y-4">
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
-            <h3 className="font-serif font-bold text-slate-800 mb-4">Order Summary</h3>
+            <h3 className="font-display font-bold text-slate-800 mb-4">Order Summary</h3>
             <input
               type="text"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Customer name (optional)"
-              className="w-full mb-4 px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]"
+              className="w-full mb-4 px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary"
             />
             <div className="space-y-3 text-sm">
               <div className="flex justify-between text-slate-600"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
@@ -241,7 +241,7 @@ const POSBilling = () => {
           </div>
 
           <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6">
-            <h3 className="font-serif font-bold text-slate-800 mb-4">Payment Method</h3>
+            <h3 className="font-display font-bold text-slate-800 mb-4">Payment Method</h3>
             <div className="grid grid-cols-3 gap-2 mb-4">
               {['Cash', 'UPI', 'Card'].map((method) => (
                 <button
@@ -249,7 +249,7 @@ const POSBilling = () => {
                   onClick={() => setPayment(method)}
                   className={`py-2.5 rounded-xl text-xs font-semibold transition-colors ${
                     payment === method
-                      ? 'bg-[#346560] text-white'
+                      ? 'bg-brandPrimary text-white'
                       : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
@@ -260,7 +260,7 @@ const POSBilling = () => {
             <button
               onClick={handleCheckout}
               disabled={cart.length === 0 || submitting}
-              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-[#4ecdc4] text-[#1c3734] rounded-2xl text-sm font-bold hover:bg-[#3dbdb5] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full inline-flex items-center justify-center gap-2 py-3 bg-accentCyan text-brandDark rounded-2xl text-sm font-bold hover:bg-accentCyanHover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? <FiLoader className="animate-spin" size={16} /> : <FiCreditCard size={16} />}
               {submitting ? 'Recording sale...' : `Complete Sale — ₹${total.toFixed(2)}`}

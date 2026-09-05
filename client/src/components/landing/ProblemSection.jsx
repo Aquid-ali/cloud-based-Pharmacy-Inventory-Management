@@ -14,7 +14,7 @@ const ProblemSection = () => (
       </h2>
       <ul className="space-y-5">
         {PROBLEMS.map((text) => (
-          <li key={text} className="border-l-2 border-tealPrimary/30 pl-5 py-0.5">
+          <li key={text} className="border-l-2 border-brandPrimary/30 pl-5 py-0.5">
             <p className="text-sm sm:text-base text-ink-soft leading-relaxed">{text}</p>
           </li>
         ))}

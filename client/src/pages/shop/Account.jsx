@@ -20,11 +20,11 @@ const Account = () => {
 
   return (
     <div className="max-w-lg space-y-5">
-      <h1 className="text-xl font-bold font-serif text-ink">My account</h1>
+      <h1 className="text-xl font-bold font-display text-ink">My account</h1>
 
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-2xl bg-tealPrimary text-white flex items-center justify-center text-lg font-bold">
+          <div className="w-12 h-12 rounded-2xl bg-brandPrimary text-white flex items-center justify-center text-lg font-bold">
             {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div>

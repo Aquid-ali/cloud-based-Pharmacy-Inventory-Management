@@ -14,7 +14,7 @@ const Categories = () => (
     title="Categories"
     description="Organize medicines into categories for easier management."
     stats={[
-      { icon: FiTag, label: 'Total Categories', value: categoriesData.length, bgTint: 'bg-[#346560]/10', iconColor: 'text-[#346560]', borderColor: 'border-[#346560]/20' },
+      { icon: FiTag, label: 'Total Categories', value: categoriesData.length, bgTint: 'bg-brandPrimary/10', iconColor: 'text-brandPrimary', borderColor: 'border-brandPrimary/20' },
       { icon: FiCheckCircle, label: 'Active', value: categoriesData.filter((c) => c.status === 'Active').length, bgTint: 'bg-emerald-500/10', iconColor: 'text-emerald-600', borderColor: 'border-emerald-500/20' },
       { icon: FiPackage, label: 'Total Medicines', value: categoriesData.reduce((s, c) => s + c.medicines, 0), bgTint: 'bg-blue-500/10', iconColor: 'text-blue-600', borderColor: 'border-blue-500/20' },
     ]}

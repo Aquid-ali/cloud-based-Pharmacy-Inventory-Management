@@ -2,7 +2,7 @@ import React from 'react';
 import PageHeader from '../../components/PageHeader';
 import toast from 'react-hot-toast';
 
-const inputClass = 'w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#346560]/20 focus:border-[#346560]';
+const inputClass = 'w-full px-4 py-2.5 rounded-2xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brandPrimary/20 focus:border-brandPrimary';
 const labelClass = 'block text-xs font-medium text-slate-500 mb-1.5';
 
 const Taxes = () => {
@@ -37,16 +37,16 @@ const Taxes = () => {
 
         <div className="space-y-3 pt-2">
           <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" defaultChecked className="w-4 h-4 rounded accent-[#346560]" />
+            <input type="checkbox" defaultChecked className="w-4 h-4 rounded accent-brandPrimary" />
             <span className="text-sm text-slate-700">Include tax in displayed prices</span>
           </label>
           <label className="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" defaultChecked className="w-4 h-4 rounded accent-[#346560]" />
+            <input type="checkbox" defaultChecked className="w-4 h-4 rounded accent-brandPrimary" />
             <span className="text-sm text-slate-700">Auto-calculate tax on invoices</span>
           </label>
         </div>
 
-        <button type="submit" className="px-5 py-2.5 bg-[#346560] text-white rounded-2xl text-sm font-semibold hover:bg-[#2a524e] transition-colors">
+        <button type="submit" className="px-5 py-2.5 bg-brandPrimary text-white rounded-2xl text-sm font-semibold hover:bg-brandPrimaryHover transition-colors">
           Save Tax Settings
         </button>
       </form>

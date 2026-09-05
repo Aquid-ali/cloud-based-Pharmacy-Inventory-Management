@@ -72,7 +72,7 @@ const CustomerOrders = () => {
         <select
           value={row.status}
           onChange={(e) => handleStatusChange(row._id, e.target.value)}
-          className="text-xs font-medium border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-[#346560] cursor-pointer"
+          className="text-xs font-medium border border-slate-200 rounded-lg px-2 py-1.5 bg-white focus:outline-none focus:border-brandPrimary cursor-pointer"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
@@ -96,9 +96,9 @@ const CustomerOrders = () => {
           icon={FiShoppingBag}
           label="Total Orders"
           value={orders.length}
-          bgTint="bg-[#346560]/10"
-          iconColor="text-[#346560]"
-          borderColor="border-[#346560]/20"
+          bgTint="bg-brandPrimary/10"
+          iconColor="text-brandPrimary"
+          borderColor="border-brandPrimary/20"
         />
         <StatCard
           icon={FiClock}

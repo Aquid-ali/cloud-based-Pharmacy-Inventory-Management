@@ -4,34 +4,43 @@ import toast from 'react-hot-toast';
 import { FiChevronRight } from 'react-icons/fi';
 import { getMyOrders } from '../../services/orderService';
 import EmptyState from '../../components/EmptyState';
+import ErrorState from '../../components/ErrorState';
 import { SkeletonRows } from '../../components/Skeleton';
 import { statusTint } from '../../utils/orderStatus';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    setError(false);
+    try {
+      const { data } = await getMyOrders();
+      setOrders(data.data.orders);
+    } catch (err) {
+      setError(true);
+      toast.error('Failed to load orders');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const { data } = await getMyOrders();
-        setOrders(data.data.orders);
-      } catch (error) {
-        toast.error('Failed to load orders');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchOrders();
   }, []);
 
   return (
     <div className="space-y-5 max-w-3xl">
-      <h1 className="text-xl font-bold font-serif text-ink">My orders</h1>
+      <h1 className="text-xl font-bold font-display text-ink">My orders</h1>
 
       {loading ? (
         <SkeletonRows count={4} />
+      ) : error ? (
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm">
+          <ErrorState title="Couldn't load orders" message="Something went wrong while loading your orders." onRetry={fetchOrders} />
+        </div>
       ) : orders.length === 0 ? (
         <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm">
           <EmptyState title="No orders yet" message="Your placed orders will show up here." />
