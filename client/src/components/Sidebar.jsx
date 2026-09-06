@@ -1,38 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { FiX, FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import { FiX } from 'react-icons/fi';
 import { TbPill } from 'react-icons/tb';
 import { navigation } from '../config/navigation';
 import useUnreadCount from '../hooks/useUnreadCount';
 
+/**
+ * Single row renderer for every nav item - previously duplicated between
+ * top-level items (NavLink's own isActive) and child items (a hand-rolled
+ * isChildActive check), now unified on one manual `active` check passed in
+ * from the parent. `primary` drives the two-tier visual hierarchy (Main
+ * section vs. every other section) without hiding or collapsing anything.
+ */
+const NavItem = ({ to, icon: Icon, label, active, badge, primary, onClick }) => (
+  <NavLink
+    to={to}
+    onClick={onClick}
+    aria-current={active ? 'page' : undefined}
+    className={`group flex items-center gap-3 rounded-xl border transition-colors duration-150 ${
+      primary ? 'px-3.5 py-2.5 text-[15px]' : 'ml-2 px-3 py-2 text-[13.5px]'
+    } font-medium ${
+      active
+        ? 'bg-accentCyan/10 border-accentCyan/20 text-accentCyan'
+        : 'border-transparent text-white/65 hover:text-white hover:bg-white/5'
+    }`}
+  >
+    <Icon size={primary ? 19 : 18} className="shrink-0" />
+    <span className="flex-1 truncate">{label}</span>
+    {badge > 0 && (
+      <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center">
+        {badge > 99 ? '99+' : badge}
+      </span>
+    )}
+  </NavLink>
+);
+
 const Sidebar = ({ open, onClose }) => {
   const location = useLocation();
   const unreadCount = useUnreadCount();
-  const [expanded, setExpanded] = useState(() => {
-    const initial = {};
-    navigation.forEach((item) => {
-      if (item.children?.some((child) => location.pathname.startsWith(child.to.split('/').slice(0, 2).join('/')) || location.pathname === child.to)) {
-        initial[item.label] = true;
-      }
-    });
-    return initial;
-  });
 
-  const toggleSection = (label) => {
-    setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
-  };
-
-  const isChildActive = (to) => {
-    if (to === '/medicines') {
-      return location.pathname === '/medicines' || location.pathname.startsWith('/medicines/');
-    }
-    return location.pathname === to || location.pathname.startsWith(to + '/');
-  };
-
-  const isSectionActive = (item) => {
-    if (item.to) return location.pathname === item.to;
-    return item.children?.some((child) => isChildActive(child.to));
-  };
+  // One matching rule for every item: exact match or a nested route beneath
+  // it (e.g. `/medicines` also lights up for `/medicines/add`,
+  // `/medicines/edit/:id`, `/medicines/:id`).
+  const isActive = (to) => location.pathname === to || location.pathname.startsWith(`${to}/`);
 
   return (
     <>
@@ -44,108 +54,59 @@ const Sidebar = ({ open, onClose }) => {
       )}
 
       <aside
-        className={`fixed z-40 lg:static top-0 left-0 h-full w-72 bg-brandDark text-white transform transition-transform duration-200 lg:translate-x-0 flex flex-col ${
+        className={`fixed z-40 lg:static top-0 left-0 h-full w-[268px] max-w-[80vw] bg-brandDark text-white transform transition-transform duration-200 lg:translate-x-0 flex flex-col overflow-hidden ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center justify-between px-6 h-20 border-b border-white/10 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brandPrimary to-lavender flex items-center justify-center text-white shadow-sm">
+        {/* Brand */}
+        <div className="flex items-center justify-between gap-3 px-5 h-[76px] border-b border-white/8 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brandPrimary to-lavender flex items-center justify-center text-white shadow-sm shrink-0">
               <TbPill className="w-6 h-6 transform -rotate-45" />
             </div>
-            <div>
-              <span className="font-display text-xl font-bold text-white tracking-tight leading-none block">
+            <div className="min-w-0 leading-tight">
+              <span className="font-display text-lg font-bold text-white tracking-tight block truncate">
                 MedStock
               </span>
-              <span className="text-accentCyan text-xs font-medium tracking-wide">
-                Pharmacy Cloud
-              </span>
+              <span className="text-accentCyan text-[11px] font-medium tracking-wide">Pharmacy Cloud</span>
             </div>
           </div>
-          <button className="lg:hidden text-white/70 hover:text-white" onClick={onClose}>
+          <button
+            className="lg:hidden text-white/60 hover:text-white shrink-0 p-1"
+            onClick={onClose}
+            aria-label="Close menu"
+          >
             <FiX size={20} />
           </button>
         </div>
 
-        <nav className="mt-4 px-3 flex-1 overflow-y-auto pb-4 scrollbar-thin">
-          <div className="space-y-0.5">
-            {navigation.map((item) => {
-              if (item.to) {
-                const Icon = item.icon;
-                return (
-                  <NavLink
+        {/* Nav - every item always visible, grouped into sections with a
+            subtle divider between groups instead of expand/collapse controls. */}
+        <nav className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-3 py-5" aria-label="Sidebar">
+          {navigation.map((group, i) => (
+            <div key={group.section} className={i === 0 ? '' : 'mt-5 pt-5 border-t border-white/8'}>
+              <p className="px-3.5 mb-2 text-[11px] font-semibold uppercase tracking-wider text-white/35">
+                {group.section}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <NavItem
                     key={item.to}
                     to={item.to}
+                    icon={item.icon}
+                    label={item.label}
+                    active={isActive(item.to)}
+                    primary={group.variant === 'primary'}
+                    badge={item.to === '/messages' ? unreadCount : 0}
                     onClick={onClose}
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-medium transition-colors duration-150 ${
-                        isActive
-                          ? 'bg-white/10 text-accentCyan border border-accentCyan/20 shadow-sm'
-                          : 'text-white/70 hover:text-white hover:bg-white/5'
-                      }`
-                    }
-                  >
-                    <Icon size={19} />
-                    <span className="flex-1">{item.label}</span>
-                    {item.to === '/messages' && unreadCount > 0 && (
-                      <span className="shrink-0 min-w-[1.25rem] h-5 px-1.5 rounded-full bg-rose-500 text-white text-[11px] font-bold flex items-center justify-center">
-                        {unreadCount > 99 ? '99+' : unreadCount}
-                      </span>
-                    )}
-                  </NavLink>
-                );
-              }
-
-              const SectionIcon = item.icon;
-              const isOpen = expanded[item.label];
-              const sectionActive = isSectionActive(item);
-
-              return (
-                <div key={item.label}>
-                  <button
-                    onClick={() => toggleSection(item.label)}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-base font-medium transition-colors duration-150 ${
-                      sectionActive
-                        ? 'text-accentCyan'
-                        : 'text-white/70 hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <SectionIcon size={19} />
-                    <span className="flex-1 text-left">{item.label}</span>
-                    {isOpen ? <FiChevronDown size={16} /> : <FiChevronRight size={16} />}
-                  </button>
-
-                  {isOpen && (
-                    <div className="ml-3 pl-3 border-l border-white/10 space-y-0.5 mt-0.5 mb-1">
-                      {item.children.map((child) => {
-                        const ChildIcon = child.icon;
-                        const active = isChildActive(child.to);
-                        return (
-                          <NavLink
-                            key={child.to}
-                            to={child.to}
-                            end={child.to === '/medicines'}
-                            onClick={onClose}
-                            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
-                              active
-                                ? 'bg-white/10 text-accentCyan'
-                                : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                            }`}
-                          >
-                            <ChildIcon size={16} />
-                            <span>{child.label}</span>
-                          </NavLink>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        <div className="p-4 m-3 rounded-2xl bg-brandCard border border-white/10 text-sm text-white/70 shrink-0">
+        <div className="p-4 m-3 rounded-2xl bg-brandCard border border-white/8 text-sm text-white/70 shrink-0">
           <p className="font-semibold text-white mb-0.5">MedStock Cloud v1.0</p>
           <p className="text-xs text-white/50">Encrypted JWT Authentication</p>
         </div>

@@ -134,11 +134,21 @@ const MedicineDetails = () => {
     };
   }, [medicine?.manufacturer, medicine?._id]);
 
-  if (loading) return <SkeletonDetail />;
+  // Narrower than the shop's other pages - this page is reading-heavy, so a
+  // capped, centered column (with side gaps that grow on wide screens) reads
+  // better than stretching to the full ShopLayout width. Scoped to this page
+  // only via this wrapper, not a ShopLayout change.
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <SkeletonDetail />
+      </div>
+    );
+  }
 
   if (error || !medicine) {
     return (
-      <div className="space-y-4">
+      <div className="max-w-6xl mx-auto space-y-4">
         <Link
           to="/customer/medicines"
           className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary"
@@ -268,7 +278,7 @@ const MedicineDetails = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
       <Link
         to="/customer/medicines"
         className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-brandPrimary"
