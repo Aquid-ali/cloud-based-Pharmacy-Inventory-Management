@@ -22,22 +22,36 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+// Trust the reverse proxy used by hosting platforms such as Render
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet());
 
-// CORS - restrict to the configured client origin, plus its 127.0.0.1 equivalent
-// (some browsers/tools resolve "localhost" and "127.0.0.1" as different origins)
-const configuredClientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+// CORS
+// CLIENT_URL should contain your deployed frontend URL in production.
+// Example:
+// CLIENT_URL=https://your-pharmacy-app.vercel.app
+const configuredClientUrl =
+  process.env.CLIENT_URL || 'http://localhost:5173';
+
 const allowedOrigins = [configuredClientUrl];
+
+// Allow localhost and 127.0.0.1 equivalents during local development
 try {
   const url = new URL(configuredClientUrl);
+
   if (url.hostname === 'localhost') {
-    allowedOrigins.push(`${url.protocol}//127.0.0.1:${url.port}`);
+    allowedOrigins.push(
+      `${url.protocol}//127.0.0.1${url.port ? `:${url.port}` : ''}`
+    );
   } else if (url.hostname === '127.0.0.1') {
-    allowedOrigins.push(`${url.protocol}//localhost:${url.port}`);
+    allowedOrigins.push(
+      `${url.protocol}//localhost${url.port ? `:${url.port}` : ''}`
+    );
   }
 } catch {
-  // configuredClientUrl wasn't a valid URL - fall back to the single allowed origin above
+  // Keep the configured origin if CLIENT_URL is invalid
 }
 
 app.use(
@@ -59,19 +73,26 @@ if (process.env.NODE_ENV !== 'test') {
   app.use(morgan('dev'));
 }
 
-// Basic rate limiting (protects auth endpoints from brute force)
+// Rate limiting for authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { success: false, message: 'Too many requests, please try again later.' },
+  message: {
+    success: false,
+    message: 'Too many requests, please try again later.',
+  },
 });
+
 app.use('/api/auth', authLimiter);
 
-// Health check - useful for uptime monitoring / load balancers
+// Health check - useful for Render and uptime monitoring
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ success: true, message: 'MediChain API is running' });
+  res.status(200).json({
+    success: true,
+    message: 'MediChain API is running',
+  });
 });
 
 // Routes
