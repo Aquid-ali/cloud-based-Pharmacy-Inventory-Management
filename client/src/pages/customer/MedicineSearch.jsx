@@ -18,6 +18,7 @@ const MedicineSearch = () => {
   const [query, setQuery] = useState(() => searchParams.get('q') || '');
   const [medicines, setMedicines] = useState([]);
   const [pagination, setPagination] = useState(null);
+  const [suggestion, setSuggestion] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
@@ -36,10 +37,14 @@ const MedicineSearch = () => {
       if (requestId !== requestIdRef.current) return; // a newer request has superseded this one
       setMedicines((prev) => (append ? [...prev, ...data.data.medicines] : data.data.medicines));
       setPagination(data.data.pagination);
+      if (!append) setSuggestion(data.data.suggestion || null);
     } catch (err) {
       if (requestId !== requestIdRef.current) return;
       setError(err.response?.data?.message || 'Failed to load medicines. Please try again.');
-      if (!append) setMedicines([]);
+      if (!append) {
+        setMedicines([]);
+        setSuggestion(null);
+      }
     } finally {
       if (requestId !== requestIdRef.current) return;
       setLoading(false);
@@ -86,6 +91,23 @@ const MedicineSearch = () => {
           {pagination.total} result{pagination.total === 1 ? '' : 's'}
           {query ? ` for "${query}"` : ''}
         </p>
+      )}
+
+      {suggestion && !loading && (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-800">
+          <FiAlertCircle className="shrink-0" />
+          <span>
+            No exact matches for "{query}". Did you mean{' '}
+            <button
+              type="button"
+              onClick={() => setQuery(suggestion.text)}
+              className="font-semibold underline underline-offset-2 hover:text-amber-900"
+            >
+              {suggestion.text}
+            </button>
+            ?
+          </span>
+        </div>
       )}
 
       {loading ? (

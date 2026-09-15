@@ -41,6 +41,12 @@ const protect = asyncHandler(async (req, res, next) => {
       throw new ApiError(401, 'Not authorized, user no longer exists');
     }
 
+    // A password reset (or future password change) after this token was
+    // issued should invalidate it, even though it hasn't expired yet.
+    if (user.passwordChangedAt && decoded.iat * 1000 < new Date(user.passwordChangedAt).getTime()) {
+      throw new ApiError(401, 'Not authorized, password was recently changed. Please log in again.');
+    }
+
     req.user = user;
     next();
   } catch (error) {

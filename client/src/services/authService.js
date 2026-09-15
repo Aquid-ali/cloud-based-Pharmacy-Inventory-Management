@@ -6,3 +6,5 @@ export const loginRequest = (payload) => api.post('/auth/login', payload);
 export const logoutRequest = () => api.post('/auth/logout');
 export const getMeRequest = () => api.get('/auth/me');
 export const updateMeRequest = (payload) => api.patch('/auth/me', payload);
+export const forgotPasswordRequest = (email) => api.post('/auth/forgot-password', { email });
+export const resetPasswordRequest = (token, password) => api.post(`/auth/reset-password/${token}`, { password });

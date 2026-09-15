@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation, NavLink } from 'react-router-dom';
-import { FiSearch, FiShoppingCart, FiMapPin, FiUser, FiLogOut, FiPackage, FiChevronDown, FiBookOpen, FiMessageCircle } from 'react-icons/fi';
+import { FiShoppingCart, FiMapPin, FiUser, FiLogOut, FiPackage, FiChevronDown, FiBookOpen, FiMessageCircle } from 'react-icons/fi';
 import { TbPill } from 'react-icons/tb';
 import useAuth from '../hooks/useAuth';
 import useCart from '../hooks/useCart';
 import useUnreadCount from '../hooks/useUnreadCount';
+import SearchAutocomplete from '../components/search/SearchAutocomplete';
 
 const ShopLayout = () => {
   const { user, logout } = useAuth();
@@ -24,14 +25,18 @@ const ShopLayout = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const q = query.trim();
+  const runSearch = (term) => {
+    const q = (term || '').trim();
     if (!user) {
       navigate(q ? `/customer/medicines?q=${encodeURIComponent(q)}` : '/customer/medicines');
       return;
     }
     navigate(q ? `/shop/search?q=${encodeURIComponent(q)}` : '/shop/search');
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    runSearch(query);
   };
 
   return (
@@ -74,15 +79,13 @@ const ShopLayout = () => {
 
           {/* Search */}
           <form onSubmit={handleSearch} className="flex-1">
-            <div className="relative">
-              <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search for medicines..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl text-sm border-0 focus:outline-none focus:ring-4 focus:ring-white/20"
-              />
-            </div>
+            <SearchAutocomplete
+              value={query}
+              onChange={setQuery}
+              onSelectSuggestion={runSearch}
+              placeholder="Search for medicines..."
+              inputClassName="w-full pl-10 pr-4 py-2.5 rounded-2xl text-sm border-0 focus:outline-none focus:ring-4 focus:ring-white/20"
+            />
           </form>
 
           {/* Cart + account */}

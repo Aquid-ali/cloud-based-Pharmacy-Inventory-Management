@@ -4,6 +4,7 @@ import { FiX } from 'react-icons/fi';
 import { TbPill } from 'react-icons/tb';
 import { navigation } from '../config/navigation';
 import useUnreadCount from '../hooks/useUnreadCount';
+import usePharmacyNetworkBadge from '../hooks/usePharmacyNetworkBadge';
 
 /**
  * Single row renderer for every nav item - previously duplicated between
@@ -38,6 +39,13 @@ const NavItem = ({ to, icon: Icon, label, active, badge, primary, onClick }) => 
 const Sidebar = ({ open, onClose }) => {
   const location = useLocation();
   const unreadCount = useUnreadCount();
+  const networkBadge = usePharmacyNetworkBadge();
+
+  // Maps a nav item's `badgeKey` to its live count - both badge-driving hooks
+  // are called unconditionally above (never inside the .map() below), so
+  // adding a future badged nav item is just one more entry here plus one
+  // more hook call, with no more `item.to === '...'` special-casing.
+  const badgeValues = { messages: unreadCount, pharmacyNetwork: networkBadge.total };
 
   // One matching rule for every item: exact match or a nested route beneath
   // it (e.g. `/medicines` also lights up for `/medicines/add`,
@@ -97,7 +105,7 @@ const Sidebar = ({ open, onClose }) => {
                     label={item.label}
                     active={isActive(item.to)}
                     primary={group.variant === 'primary'}
-                    badge={item.to === '/messages' ? unreadCount : 0}
+                    badge={item.badgeKey ? badgeValues[item.badgeKey] || 0 : 0}
                     onClick={onClose}
                   />
                 ))}

@@ -3,16 +3,12 @@ const MedicineCatalog = require('../models/MedicineCatalog');
 const Inventory = require('../models/Inventory');
 const ApiError = require('../utils/ApiError');
 const { resolveNewBatchFlags } = require('../services/batchNotificationService');
+const { searchCatalog, getAutocompleteSuggestions } = require('../services/medicineSearchService');
 
 // Fields safe to expose to the customer-facing catalog search - excludes
 // timestamps and anything not needed by the storefront. latestBatchId is
 // fetched (not shown as-is) purely to resolve the "New Batch Added" flag below.
 const CUSTOMER_FIELDS = '_id medicineId name composition uses sideEffects imageUrl manufacturer reviewStats latestBatchId';
-
-// Fields searchMedicines matches against - includes `uses` so a customer can
-// find a medicine by the condition/disease it treats (e.g. searching
-// "diabetes" or "fever"), not just by the medicine's own name.
-const SEARCH_FIELDS = ['name', 'genericName', 'composition', 'manufacturer', 'uses'];
 
 /**
  * @desc    Add a new medicine to the master catalog
@@ -30,45 +26,33 @@ const createMedicine = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Customer-facing search across name / genericName / composition /
- *          manufacturer / uses, returning only storefront-safe fields.
- *          Matching `uses` means a customer can search by condition/disease
- *          (e.g. "diabetes", "fever") and find the medicines that treat it,
- *          not just medicines whose own name matches.
+ * @desc    Customer-facing search across name / genericName / brandName /
+ *          composition / manufacturer / uses, returning only storefront-safe
+ *          fields, ranked by relevance (exact > starts-with > contains >
+ *          fuzzy) with typo-tolerant fallback and a "Did you mean" suggestion
+ *          when no strong match exists. Matching `uses` means a customer can
+ *          search by condition/disease (e.g. "diabetes", "fever") and find
+ *          the medicines that treat it, not just medicines whose own name
+ *          matches. See server/services/medicineSearchService.js for the
+ *          ranking/fuzzy logic shared with pharmacyController.browsePharmacyInventory.
  * @route   GET /api/medicine-catalog/search
  * @access  Public
  *
  * Query params:
- *   q      - search term. Split into words; a medicine matches only if EVERY
- *            word is found in at least one of SEARCH_FIELDS (case-insensitive,
- *            substring match) - so "fever tablet" matches a medicine whose
- *            name contains "tablet" and whose uses contains "fever", even if
- *            neither field alone contains the full phrase.
+ *   q      - search term, optional (empty = browse the full catalog A-Z)
  *   page   - default 1
  *   limit  - default 20 (max 50)
  */
 const searchMedicines = asyncHandler(async (req, res) => {
   const { q, page = 1, limit = 20 } = req.query;
 
-  const filter = {};
-  if (q && q.trim()) {
-    const words = q.trim().split(/\s+/).filter(Boolean);
-    filter.$and = words.map((word) => {
-      // Escape regex metacharacters so user input can't build an unintended pattern
-      const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(escaped, 'i');
-      return { $or: SEARCH_FIELDS.map((field) => ({ [field]: regex })) };
-    });
-  }
+  const { ids, total, suggestion, page: pageNum, limit: limitNum } = await searchCatalog({ q, page, limit });
 
-  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
-  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
-  const skip = (pageNum - 1) * limitNum;
-
-  const [medicines, total] = await Promise.all([
-    MedicineCatalog.find(filter).select(CUSTOMER_FIELDS).sort({ name: 1 }).skip(skip).limit(limitNum),
-    MedicineCatalog.countDocuments(filter),
-  ]);
+  const docs = await MedicineCatalog.find({ _id: { $in: ids } }).select(CUSTOMER_FIELDS);
+  const docsById = new Map(docs.map((doc) => [String(doc._id), doc]));
+  // Re-order to match the rank order searchCatalog already computed - `$in`
+  // does not preserve array order.
+  const medicines = ids.map((id) => docsById.get(id)).filter(Boolean);
 
   const newBatchFlags = await resolveNewBatchFlags(
     req.user?._id,
@@ -83,6 +67,7 @@ const searchMedicines = asyncHandler(async (req, res) => {
     success: true,
     data: {
       medicines: medicinesWithFlag,
+      suggestion,
       pagination: {
         total,
         page: pageNum,
@@ -91,6 +76,24 @@ const searchMedicines = asyncHandler(async (req, res) => {
       },
     },
   });
+});
+
+/**
+ * @desc    Compact autocomplete suggestions for the live search dropdown -
+ *          served entirely from an in-memory cache (see medicineSearchService),
+ *          never queries `uses`, so this is a pure name-completion dropdown
+ *          (condition/disease search still works on the full /search results).
+ * @route   GET /api/medicine-catalog/autocomplete
+ * @access  Public
+ *
+ * Query params:
+ *   q      - search term
+ *   limit  - default 8 (max 8)
+ */
+const getAutocomplete = asyncHandler(async (req, res) => {
+  const { q, limit } = req.query;
+  const suggestions = await getAutocompleteSuggestions({ q, limit: limit ? parseInt(limit, 10) : 8 });
+  res.status(200).json({ success: true, data: { suggestions } });
 });
 
 /**
@@ -263,6 +266,7 @@ module.exports = {
   createMedicine,
   getMedicines,
   searchMedicines,
+  getAutocomplete,
   getMedicineById,
   getMedicineAvailability,
   updateMedicine,

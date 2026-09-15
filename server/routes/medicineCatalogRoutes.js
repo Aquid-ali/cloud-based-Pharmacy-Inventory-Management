@@ -5,6 +5,7 @@ const {
   createMedicine,
   getMedicines,
   searchMedicines,
+  getAutocomplete,
   getMedicineById,
   getMedicineAvailability,
   updateMedicine,
@@ -28,6 +29,7 @@ const {
   idParamValidator,
   listQueryValidator,
   searchQueryValidator,
+  autocompleteQueryValidator,
 } = require('../validators/medicineCatalogValidator');
 const {
   idParamValidator: enrichmentIdParamValidator,
@@ -43,6 +45,7 @@ const {
 // requires `protect` below. `/search` must stay declared before '/:id' so
 // that single-segment static path isn't captured as an id param.
 router.get('/search', searchQueryValidator, validate, searchMedicines);
+router.get('/autocomplete', autocompleteQueryValidator, validate, getAutocomplete);
 router.post('/enrich-all', protect, authorize('Admin'), enrichAllMedicines);
 router.post('/retry-failed', protect, authorize('Admin'), retryFailedMedicines);
 router.get('/enrichment-stats', protect, authorize('Admin'), getEnrichmentStats);

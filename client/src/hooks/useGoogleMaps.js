@@ -4,6 +4,24 @@ import { setOptions, importLibrary } from '@googlemaps/js-api-loader';
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 let optionsSet = false;
 
+// Google's own runtime shows an intrusive "This page can't load Google Maps
+// correctly" dialog whenever it detects an invalid/restricted key or a
+// billing problem on the Cloud project - a *runtime* API failure that can
+// still happen even after the script itself has loaded successfully, so it
+// isn't caught by loadCoreLibraries()'s own .catch() below. `gm_authFailure`
+// is Google's own documented escape hatch for this: if it's defined, Google
+// calls it instead of showing that dialog. Every active useGoogleMaps() call
+// registers itself here so it can fall back to the app's existing "Map
+// couldn't be loaded" UI instead - this doesn't fix the underlying key/
+// billing problem (see README "Google Maps Setup"), it just replaces
+// Google's own popup with this app's normal error state.
+const authFailureListeners = new Set();
+if (typeof window !== 'undefined') {
+  window.gm_authFailure = () => {
+    authFailureListeners.forEach((notify) => notify());
+  };
+}
+
 function ensureOptionsSet() {
   if (!optionsSet) {
     setOptions({ key: API_KEY, v: 'weekly' });
@@ -66,6 +84,12 @@ export default function useGoogleMaps() {
     }
 
     let active = true;
+
+    const handleAuthFailure = () => {
+      if (active) setState({ google: null, loading: false, error: 'auth-failure' });
+    };
+    authFailureListeners.add(handleAuthFailure);
+
     loadCoreLibraries()
       .then(() => {
         if (active) setState({ google: window.google, loading: false, error: null });
@@ -76,6 +100,7 @@ export default function useGoogleMaps() {
 
     return () => {
       active = false;
+      authFailureListeners.delete(handleAuthFailure);
     };
   }, []);
 

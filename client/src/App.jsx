@@ -8,6 +8,8 @@ import PrivacyPolicy from './pages/info/PrivacyPolicy';
 import TermsConditions from './pages/info/TermsConditions';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminRegister from './pages/admin/AdminRegister';
 import Dashboard from './pages/Dashboard';
@@ -38,6 +40,12 @@ import CustomerOrders from './pages/orders/CustomerOrders';
 
 // Admin: pharmacy messages (customer DMs)
 import PharmacyMessages from './pages/PharmacyMessages';
+
+// Admin: Pharmacy Network (pharmacy-to-pharmacy discovery, requests & chat)
+import PharmacyNetworkInbox from './pages/network/PharmacyNetworkInbox';
+import PharmacyNetworkFind from './pages/network/PharmacyNetworkFind';
+import PharmacyNetworkProfile from './pages/network/PharmacyNetworkProfile';
+import PharmacyNetworkRequests from './pages/network/PharmacyNetworkRequests';
 
 // Admin: medicine data management (AI enrichment)
 import MedicineDataManagement from './pages/admin/MedicineDataManagement';
@@ -119,6 +127,8 @@ function App() {
 
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin/register" element={<AdminRegister />} />
 
@@ -163,6 +173,13 @@ function App() {
         <Route path="/orders" element={<CustomerOrders />} />
         <Route path="/messages" element={<PharmacyMessages />} />
         <Route path="/messages/:conversationId" element={<PharmacyMessages />} />
+
+        {/* Pharmacy Network (pharmacy-to-pharmacy discovery, requests & chat) */}
+        <Route path="/network/find" element={<PharmacyNetworkFind />} />
+        <Route path="/network/find/:pharmacyId" element={<PharmacyNetworkProfile />} />
+        <Route path="/network/requests" element={<PharmacyNetworkRequests />} />
+        <Route path="/network" element={<PharmacyNetworkInbox />} />
+        <Route path="/network/:conversationId" element={<PharmacyNetworkInbox />} />
 
         {/* Medicine Data Management (AI enrichment) */}
         <Route path="/medicine-data" element={<MedicineDataManagement />} />

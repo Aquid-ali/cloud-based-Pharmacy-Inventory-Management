@@ -61,6 +61,13 @@ const pharmacySchema = new mongoose.Schema(
       enum: ['active', 'inactive'],
       default: 'active',
     },
+    // Additive - no verification workflow exists (or is in scope) anywhere in
+    // the app yet, so every pharmacy that already exists keeps behaving
+    // exactly as before. Not editable via any API in this pass.
+    isVerified: {
+      type: Boolean,
+      default: true,
+    },
     // Optional - powers the customer-facing "nearby pharmacies" sort. Not
     // required since there's no admin UI to capture it yet (only the seed
     // script sets it); pharmacies without it just don't participate in

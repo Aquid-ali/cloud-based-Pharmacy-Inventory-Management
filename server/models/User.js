@@ -60,6 +60,27 @@ const userSchema = new mongoose.Schema(
         isDefault: { type: Boolean, default: false },
       },
     ],
+    // Forgot-password flow (authController.forgotPassword/resetPassword). Only
+    // ever holds the SHA-256 hash of the reset token, never the raw value -
+    // select: false keeps both out of every default query result, same as
+    // password. A fresh forgot-password request overwrites these, which
+    // naturally invalidates any earlier unused reset link for this user.
+    resetTokenHash: {
+      type: String,
+      select: false,
+      index: true,
+    },
+    resetTokenExpires: {
+      type: Date,
+      select: false,
+    },
+    // Set whenever a password is changed after account creation (see the
+    // pre('save') hook below). authMiddleware.protect compares this against
+    // a JWT's `iat` so tokens issued before a password reset stop working,
+    // without needing a server-side session/blacklist store.
+    passwordChangedAt: {
+      type: Date,
+    },
   },
   { timestamps: true } // adds createdAt & updatedAt
 );
@@ -69,6 +90,13 @@ userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
+  // Only mark existing accounts - not a still-being-created document - so a
+  // fresh registration's own login isn't immediately invalidated by this.
+  // The 1s rewind guards against the JWT's `iat` (second precision) landing
+  // in the same second as this write.
+  if (!this.isNew) {
+    this.passwordChangedAt = new Date(Date.now() - 1000);
+  }
   next();
 });
 

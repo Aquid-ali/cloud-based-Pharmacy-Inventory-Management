@@ -11,6 +11,7 @@ import {
   FiSettings,
   FiDatabase,
   FiMessageCircle,
+  FiShare2,
 } from 'react-icons/fi';
 
 // Flat, section-based structure - every item is always visible (no
@@ -25,7 +26,8 @@ export const navigation = [
     items: [
       { label: 'Dashboard', icon: FiGrid, to: '/dashboard' },
       { label: 'Customer Orders', icon: FiShoppingBag, to: '/orders' },
-      { label: 'Messages', icon: FiMessageCircle, to: '/messages' },
+      { label: 'Messages', icon: FiMessageCircle, to: '/messages', badgeKey: 'messages' },
+      { label: 'Pharmacy Network', icon: FiShare2, to: '/network', badgeKey: 'pharmacyNetwork' },
     ],
   },
   {

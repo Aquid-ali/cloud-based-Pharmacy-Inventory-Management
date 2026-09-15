@@ -5,5 +5,6 @@ import api from './api';
 // returns - e.g. enrichmentStatus/enrichmentConfidence for Medicine Data Management.
 export const getCatalogMedicines = (params) => api.get('/medicine-catalog', { params });
 export const searchCatalogMedicines = (params) => api.get('/medicine-catalog/search', { params });
+export const getAutocompleteSuggestions = (params) => api.get('/medicine-catalog/autocomplete', { params });
 export const getCatalogMedicineById = (id) => api.get(`/medicine-catalog/${id}`);
 export const getCatalogMedicineAvailability = (id) => api.get(`/medicine-catalog/${id}/availability`);

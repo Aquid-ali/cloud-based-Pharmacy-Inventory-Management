@@ -1,10 +1,10 @@
 const asyncHandler = require('express-async-handler');
 const Pharmacy = require('../models/Pharmacy');
 const Inventory = require('../models/Inventory');
-const MedicineCatalog = require('../models/MedicineCatalog');
 const ApiError = require('../utils/ApiError');
 const { resolveNewBatchFlags } = require('../services/batchNotificationService');
 const { geocodeAddress, isAddressNotFound } = require('../services/geocodingService');
+const { rankCatalogMatches } = require('../services/medicineSearchService');
 
 const ADDRESS_FIELDS = ['address', 'city', 'state', 'pincode'];
 
@@ -147,11 +147,20 @@ const getNearbyPharmacies = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: { pharmacies: withDistance } });
 });
 
+// Search-term queries can no longer rely on Mongo's own skip/limit to paginate
+// (rank order has to be preserved in JS - see below), so the candidate pool is
+// capped here instead. Same trade-off already accepted by the pre-existing
+// 500-cap this replaces: pagination.total reflects this capped pool, not a
+// true database-wide count, for very generic queries that exceed it.
+const MAX_INVENTORY_SEARCH_POOL = 1000;
+
 /**
  * @desc    Customer-facing browse of live pharmacy stock - either one pharmacy's
  *          (?pharmacyId=) or aggregated across every active pharmacy. Backed by
  *          Inventory + MedicineCatalog, so it reflects Add Stock changes immediately.
  *          Never exposes purchasePrice/batchNumber/minimumStock (see toCustomerInventoryItem).
+ *          Search ranking/typo-tolerance is shared with
+ *          medicineCatalogController.searchMedicines via medicineSearchService.
  * @route   GET /api/pharmacies/browse-inventory?pharmacyId=&search=&page=&limit=
  * @access  Private
  */
@@ -171,38 +180,44 @@ const browsePharmacyInventory = asyncHandler(async (req, res) => {
     filter.pharmacyId = { $in: activePharmacies.map((p) => p._id) };
   }
 
-  if (search && search.trim()) {
-    // Word-by-word, matched across name/genericName/composition/manufacturer/uses
-    // (mirrors medicineCatalogController.searchMedicines) - so searching a
-    // condition/disease name (e.g. "diabetes") surfaces medicines that treat
-    // it via their `uses` text, not just medicines whose own name matches.
-    const words = search.trim().split(/\s+/).filter(Boolean);
-    const catalogFilter = {
-      $and: words.map((word) => {
-        const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regex = new RegExp(escaped, 'i');
-        return {
-          $or: [{ name: regex }, { genericName: regex }, { composition: regex }, { manufacturer: regex }, { uses: regex }],
-        };
-      }),
-    };
-    const matches = await MedicineCatalog.find(catalogFilter, { _id: 1 }).limit(500).lean();
-    filter.medicineId = { $in: matches.map((m) => m._id) };
-  }
-
   const pageNum = Math.max(parseInt(page, 10) || 1, 1);
   const limitNum = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 50);
   const skip = (pageNum - 1) * limitNum;
 
-  const [items, total] = await Promise.all([
-    Inventory.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNum)
+  const { orderedIds, suggestion } = await rankCatalogMatches({ q: search });
+
+  let items;
+  let total;
+
+  if (orderedIds === null) {
+    // No search term - unchanged browse-everything path: DB-level sort/skip/limit.
+    [items, total] = await Promise.all([
+      Inventory.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .populate('medicineId', 'name composition manufacturer imageUrl latestBatchId')
+        .populate('pharmacyId', 'name city state'),
+      Inventory.countDocuments(filter),
+    ]);
+  } else {
+    filter.medicineId = { $in: orderedIds };
+    const matched = await Inventory.find(filter)
+      .limit(MAX_INVENTORY_SEARCH_POOL)
       .populate('medicineId', 'name composition manufacturer imageUrl latestBatchId')
-      .populate('pharmacyId', 'name city state'),
-    Inventory.countDocuments(filter),
-  ]);
+      .populate('pharmacyId', 'name city state');
+
+    const rankIndex = new Map(orderedIds.map((id, idx) => [id, idx]));
+    matched.sort((a, b) => {
+      const rankA = rankIndex.get(String(a.medicineId?._id)) ?? Number.MAX_SAFE_INTEGER;
+      const rankB = rankIndex.get(String(b.medicineId?._id)) ?? Number.MAX_SAFE_INTEGER;
+      if (rankA !== rankB) return rankA - rankB;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    total = matched.length;
+    items = matched.slice(skip, skip + limitNum);
+  }
 
   const newBatchFlags = await resolveNewBatchFlags(
     req.user?._id,
@@ -213,6 +228,7 @@ const browsePharmacyInventory = asyncHandler(async (req, res) => {
     success: true,
     data: {
       inventory: items.map((item) => toCustomerInventoryItem(item, newBatchFlags)),
+      suggestion,
       pagination: {
         total,
         page: pageNum,

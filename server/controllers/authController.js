@@ -1,11 +1,19 @@
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Pharmacy = require('../models/Pharmacy');
 const generateToken = require('../utils/generateToken');
+const hashToken = require('../utils/hashToken');
 const ApiError = require('../utils/ApiError');
 const { getIsConnected } = require('../config/db');
+const { sendPasswordResetEmail } = require('../services/emailService');
+
+const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const GENERIC_FORGOT_PASSWORD_MESSAGE =
+  'If an account exists with this email, a password reset link has been sent.';
+const INVALID_OR_EXPIRED_TOKEN_MESSAGE = 'This password reset link is invalid or has expired.';
 
 // In-memory fallback user store when MongoDB is not connected
 const inMemoryUsers = new Map();
@@ -251,5 +259,93 @@ const updateMe = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { registerUser, registerPharmacyAdmin, loginUser, logoutUser, getMe, updateMe, inMemoryUsers };
+/**
+ * @desc    Request a password reset link. Always responds with the same
+ *          generic message regardless of whether the email is registered,
+ *          so this endpoint can't be used to enumerate accounts. The
+ *          in-memory (no-DB) fallback mode has nowhere to persist a reset
+ *          token, so it short-circuits to the same generic response too.
+ * @route   POST /api/auth/forgot-password
+ * @access  Public
+ */
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const normalizedEmail = email.toLowerCase();
+
+  if (getIsConnected()) {
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (user) {
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      user.resetTokenHash = hashToken(rawToken);
+      user.resetTokenExpires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+      // Only the token fields changed - skip re-running full document
+      // validation (and the password-hashing hook, which isModified guards
+      // against anyway since password itself isn't touched here).
+      await user.save({ validateBeforeSave: false });
+
+      const frontendUrl = (process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/$/, '');
+      const resetUrl = `${frontendUrl}/reset-password/${rawToken}`;
+
+      try {
+        await sendPasswordResetEmail({ to: user.email, fullName: user.fullName, resetUrl });
+      } catch (error) {
+        // Never surface delivery/config failures to the client - that would
+        // both leak account existence and expose infrastructure details.
+        console.error(`[forgotPassword] Failed to send reset email: ${error.message}`);
+      }
+    }
+  }
+
+  res.status(200).json({ success: true, message: GENERIC_FORGOT_PASSWORD_MESSAGE });
+});
+
+/**
+ * @desc    Complete a password reset using the raw token emailed to the user.
+ * @route   POST /api/auth/reset-password/:token
+ * @access  Public
+ */
+const resetPassword = asyncHandler(async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  if (!getIsConnected()) {
+    throw new ApiError(503, 'Password reset requires a database connection');
+  }
+
+  if (!token) {
+    throw new ApiError(400, INVALID_OR_EXPIRED_TOKEN_MESSAGE);
+  }
+
+  const user = await User.findOne({
+    resetTokenHash: hashToken(token),
+    resetTokenExpires: { $gt: new Date() },
+  }).select('+resetTokenHash +resetTokenExpires');
+
+  if (!user) {
+    throw new ApiError(400, INVALID_OR_EXPIRED_TOKEN_MESSAGE);
+  }
+
+  user.password = password; // re-hashed by the model's pre('save') hook
+  user.resetTokenHash = undefined;
+  user.resetTokenExpires = undefined;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password reset successfully. You can now log in with your new password.',
+  });
+});
+
+module.exports = {
+  registerUser,
+  registerPharmacyAdmin,
+  loginUser,
+  logoutUser,
+  getMe,
+  updateMe,
+  forgotPassword,
+  resetPassword,
+  inMemoryUsers,
+};
 

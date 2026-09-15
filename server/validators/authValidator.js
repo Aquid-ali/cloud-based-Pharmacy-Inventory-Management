@@ -76,4 +76,39 @@ const updateMeValidator = [
   body('addresses.*.pincode').optional().trim().notEmpty().withMessage('Pincode is required'),
 ];
 
-module.exports = { registerValidator, registerAdminValidator, loginValidator, updateMeValidator };
+const forgotPasswordValidator = [
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required')
+    .isEmail()
+    .withMessage('Please provide a valid email')
+    .normalizeEmail(),
+];
+
+// Stronger than the base 6-char registration/login policy, deliberately -
+// a freshly-reset password is a good place to raise the bar without
+// breaking any existing account (nothing here forces existing passwords
+// to be re-validated against it).
+const resetPasswordValidator = [
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/[a-z]/)
+    .withMessage('Password must include at least one lowercase letter')
+    .matches(/[A-Z]/)
+    .withMessage('Password must include at least one uppercase letter')
+    .matches(/\d/)
+    .withMessage('Password must include at least one number'),
+];
+
+module.exports = {
+  registerValidator,
+  registerAdminValidator,
+  loginValidator,
+  updateMeValidator,
+  forgotPasswordValidator,
+  resetPasswordValidator,
+};

@@ -42,10 +42,16 @@ const searchQueryValidator = [
   query('limit').optional().isInt({ min: 1, max: 50 }).withMessage('Limit must be between 1 and 50'),
 ];
 
+const autocompleteQueryValidator = [
+  query('q').optional().trim(),
+  query('limit').optional().isInt({ min: 1, max: 8 }).withMessage('Limit must be between 1 and 8'),
+];
+
 module.exports = {
   createMedicineValidator,
   updateMedicineValidator,
   idParamValidator,
   listQueryValidator,
   searchQueryValidator,
+  autocompleteQueryValidator,
 };
