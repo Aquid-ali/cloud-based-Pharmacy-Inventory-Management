@@ -42,11 +42,36 @@ const REQUIRED_FIELDS = [
 const MedicineForm = ({ initialData, onSubmit, submitting, submitLabel = 'Save Medicine' }) => {
   const [form, setForm] = useState(() => buildInitialForm(initialData));
   const [errors, setErrors] = useState({});
+  const [imageFile, setImageFile] = useState(null);
+  
+  // Create full URL if initialData has a relative imageUrl
+  const initialImageUrl = initialData?.imageUrl 
+    ? (initialData.imageUrl.startsWith('http') ? initialData.imageUrl : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || ''}${initialData.imageUrl}`) 
+    : null;
+    
+  const [imagePreview, setImagePreview] = useState(initialImageUrl);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, image: 'Please select a valid image file' }));
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, image: 'Image size must be less than 5MB' }));
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+      setErrors(prev => ({ ...prev, image: undefined }));
+    }
   };
 
   const validate = () => {
@@ -67,22 +92,57 @@ const MedicineForm = ({ initialData, onSubmit, submitting, submitLabel = 'Save M
     e.preventDefault();
     if (!validate()) return;
 
-    const payload = {
-      ...form,
-      quantity: Number(form.quantity),
-      buyingPrice: Number(form.buyingPrice),
-      sellingPrice: Number(form.sellingPrice),
-      manufacturingDate: form.manufacturingDate || undefined,
-    };
-    onSubmit(payload);
+    const formData = new FormData();
+    Object.keys(form).forEach((key) => {
+      let value = form[key];
+      if (['quantity', 'buyingPrice', 'sellingPrice'].includes(key)) {
+        value = Number(value);
+      }
+      if (key === 'manufacturingDate' && !value) {
+        return; // skip empty manufacturingDate
+      }
+      if (value !== '' && value !== undefined && value !== null) {
+        formData.append(key, value);
+      }
+    });
+
+    if (imageFile) {
+      formData.append('image', imageFile);
+    }
+
+    onSubmit(formData);
   };
 
   const isEdit = Boolean(initialData);
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-8" noValidate>
-      {/* Basic Information */}
+      {/* Medicine Image */}
       <div>
+        <h3 className="text-sm font-bold text-slate-800 mb-1">Medicine Image</h3>
+        <p className="text-xs text-slate-400 mb-4">Upload a photo of the medicine (optional).</p>
+        <div className="flex items-center gap-6">
+          <div className="w-24 h-24 rounded-2xl border-2 border-dashed border-slate-300 flex items-center justify-center bg-slate-50 overflow-hidden shrink-0">
+            {imagePreview ? (
+              <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs text-slate-400 text-center px-2">No Image</span>
+            )}
+          </div>
+          <div className="flex-1">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-brandPrimary/10 file:text-brandPrimary hover:file:bg-brandPrimary/20 transition-all cursor-pointer focus:outline-none"
+            />
+            {errors.image && <p className="text-xs text-red-500 mt-2 pl-1">{errors.image}</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Basic Information */}
+      <div className="pt-6 border-t border-slate-100">
         <h3 className="text-sm font-bold text-slate-800 mb-1">Basic Information</h3>
         <p className="text-xs text-slate-400 mb-4">What the medicine is and who makes it.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">

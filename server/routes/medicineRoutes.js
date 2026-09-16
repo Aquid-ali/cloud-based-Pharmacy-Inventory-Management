@@ -14,6 +14,7 @@ const {
 const { protect, authorize } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
 const { uploadCsv } = require('../middleware/uploadMiddleware');
+const { uploadMedicineImage } = require('../middleware/medicineUploadMiddleware');
 const {
   createMedicineValidator,
   updateMedicineValidator,
@@ -32,6 +33,7 @@ router
   .get(listQueryValidator, validate, getMedicines)
   .post(
     authorize('Admin'),
+    uploadMedicineImage.single('image'),
     createMedicineValidator,
     validate,
     createMedicine
@@ -42,6 +44,7 @@ router
   .get(idParamValidator, validate, getMedicineById)
   .put(
     authorize('Admin'),
+    uploadMedicineImage.single('image'),
     updateMedicineValidator,
     validate,
     updateMedicine

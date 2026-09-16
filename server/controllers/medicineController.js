@@ -108,8 +108,14 @@ const validateImportRow = (row) => {
  * @access  Private (Admin)
  */
 const createMedicine = asyncHandler(async (req, res) => {
+  let imageUrl;
+  if (req.file) {
+    imageUrl = `/uploads/medicines/${req.file.filename}`;
+  }
+
   const medicine = await Medicine.create({
     ...req.body,
+    imageUrl,
     createdBy: req.user._id,
     store: requireStoreId(req),
   });
@@ -256,6 +262,11 @@ const updateMedicine = asyncHandler(async (req, res) => {
   }
 
   const { store, ...updates } = req.body; // store is never client-editable
+  
+  if (req.file) {
+    updates.imageUrl = `/uploads/medicines/${req.file.filename}`;
+  }
+
   Object.assign(medicine, updates);
   await medicine.save(); // triggers pre-save hook to recompute status
 

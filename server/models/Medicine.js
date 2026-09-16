@@ -65,6 +65,10 @@ const medicineSchema = new mongoose.Schema(
       trim: true,
       maxlength: 1000,
     },
+    imageUrl: {
+      type: String,
+      trim: true,
+    },
     // Derived/operational status, kept in sync via pre-save hook
     status: {
       type: String,
