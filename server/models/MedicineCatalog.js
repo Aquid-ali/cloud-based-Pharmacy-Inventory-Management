@@ -116,56 +116,7 @@ const medicineCatalogSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    // --- Enrichment tracking -------------------------------------------------
-    // Where this record's clinical fields (composition/uses/howItWorks/
-    // sideEffects/precautions/contraindications) stand in the enrichment
-    // pipeline. 'completed' is only ever set once real data was found and
-    // validated (matched against the imported reference dataset, or a
-    // confidently-identified AI enrichment) - never inferred or guessed.
-    enrichmentStatus: {
-      type: String,
-      enum: ['pending', 'processing', 'completed', 'failed', 'needs_review'],
-      default: 'pending',
-      index: true,
-    },
-    // 0-100. How confident the identification/enrichment step was that this
-    // record's clinical fields genuinely describe this medicine.
-    enrichmentConfidence: {
-      type: Number,
-      min: 0,
-      max: 100,
-      default: 0,
-    },
-    // Where the current clinical fields came from, e.g. 'reference-dataset'
-    // (the ~11,500-row imported CSV), 'ai:claude-opus-5', or 'admin-manual'.
-    informationSource: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    lastEnrichedAt: {
-      type: Date,
-      default: null,
-    },
-    needsReview: {
-      type: Boolean,
-      default: false,
-    },
-    // Human-readable reason the last enrichment attempt failed or was flagged
-    // for review, e.g. "Unable to confidently identify medicine".
-    enrichmentError: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    // The AI's best-effort structured guess when enrichmentStatus is
-    // 'needs_review' - shown on the admin review screen so an admin can judge
-    // it before it's ever applied to the live fields above. Never read by any
-    // customer-facing code; cleared once the record moves to 'completed'.
-    enrichmentProposal: {
-      type: mongoose.Schema.Types.Mixed,
-      default: null,
-    },
+    // --- End Enrichment tracking ---------------------------------------------
     imageUrl: {
       type: String,
       trim: true,

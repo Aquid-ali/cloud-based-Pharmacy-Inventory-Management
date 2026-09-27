@@ -40,18 +40,9 @@ export const navigation = [
     ],
   },
   {
-    section: 'Sales',
-    items: [{ label: 'Sales History', icon: FiClock, to: '/sales/history' }],
-  },
-  {
-    section: 'Medicine Data',
-    items: [{ label: 'AI Enrichment', icon: FiDatabase, to: '/medicine-data' }],
-  },
-  {
     section: 'Analytics & Reports',
     items: [
-      { label: 'Sales Report', icon: FiBarChart2, to: '/reports/sales' },
-      { label: 'Profit Analysis', icon: FiTrendingUp, to: '/reports/profit' },
+      { label: 'Sales & Analytics', icon: FiBarChart2, to: '/sales-analytics' },
     ],
   },
   {

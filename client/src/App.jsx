@@ -47,9 +47,7 @@ import PharmacyNetworkFind from './pages/network/PharmacyNetworkFind';
 import PharmacyNetworkProfile from './pages/network/PharmacyNetworkProfile';
 import PharmacyNetworkRequests from './pages/network/PharmacyNetworkRequests';
 
-// Admin: medicine data management (AI enrichment)
-import MedicineDataManagement from './pages/admin/MedicineDataManagement';
-import MedicineReview from './pages/admin/MedicineReview';
+// (AI enrichment removed)
 
 // Customer: medicine catalog
 import MedicineSearch from './pages/customer/MedicineSearch';
@@ -64,9 +62,7 @@ import Batches from './pages/inventory/Batches';
 import Manufacturers from './pages/inventory/Manufacturers';
 import Suppliers from './pages/inventory/Suppliers';
 
-// Sales
 import POSBilling from './pages/sales/POSBilling';
-import SalesHistory from './pages/sales/SalesHistory';
 import ReturnsRefunds from './pages/sales/ReturnsRefunds';
 import Quotations from './pages/sales/Quotations';
 
@@ -87,10 +83,9 @@ import RolesPermissions from './pages/employees/RolesPermissions';
 import Attendance from './pages/employees/Attendance';
 
 // Reports
-import SalesReport from './pages/reports/SalesReport';
-import ProfitAnalysis from './pages/reports/ProfitAnalysis';
 import PurchaseReport from './pages/reports/PurchaseReport';
 import TaxReport from './pages/reports/TaxReport';
+import SalesAndAnalytics from './pages/analytics/SalesAndAnalytics';
 
 // Analytics
 import DashboardAnalytics from './pages/analytics/DashboardAnalytics';
@@ -181,9 +176,7 @@ function App() {
         <Route path="/network" element={<PharmacyNetworkInbox />} />
         <Route path="/network/:conversationId" element={<PharmacyNetworkInbox />} />
 
-        {/* Medicine Data Management (AI enrichment) */}
-        <Route path="/medicine-data" element={<MedicineDataManagement />} />
-        <Route path="/medicine-data/review" element={<MedicineReview />} />
+        {/* AI enrichment removed */}
 
         {/* Inventory */}
         <Route path="/medicines" element={<MedicineList />} />
@@ -200,7 +193,6 @@ function App() {
 
         {/* Sales */}
         <Route path="/sales/pos" element={<POSBilling />} />
-        <Route path="/sales/history" element={<SalesHistory />} />
         <Route path="/sales/returns" element={<ReturnsRefunds />} />
         <Route path="/sales/quotations" element={<Quotations />} />
 
@@ -221,12 +213,11 @@ function App() {
         <Route path="/employees/attendance" element={<Attendance />} />
 
         {/* Reports */}
-        <Route path="/reports/sales" element={<SalesReport />} />
-        <Route path="/reports/profit" element={<ProfitAnalysis />} />
         <Route path="/reports/purchase" element={<PurchaseReport />} />
         <Route path="/reports/tax" element={<TaxReport />} />
 
         {/* Analytics */}
+        <Route path="/sales-analytics" element={<SalesAndAnalytics />} />
         <Route path="/analytics/dashboard" element={<DashboardAnalytics />} />
         <Route path="/analytics/forecast" element={<DemandForecast />} />
         <Route path="/analytics/best-selling" element={<BestSellingMedicines />} />

@@ -11,15 +11,6 @@ const {
   updateMedicine,
   deleteMedicine,
 } = require('../controllers/medicineCatalogController');
-const {
-  enrichMedicine,
-  enrichAllMedicines,
-  retryFailedMedicines,
-  getEnrichmentStats,
-  getNeedsReview,
-  approveReview,
-  updateMedicineNameAndRetry,
-} = require('../controllers/medicineEnrichmentController');
 
 const { protect, authorize } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
@@ -31,12 +22,6 @@ const {
   searchQueryValidator,
   autocompleteQueryValidator,
 } = require('../validators/medicineCatalogValidator');
-const {
-  idParamValidator: enrichmentIdParamValidator,
-  enrichValidator,
-  updateNameValidator,
-  needsReviewQueryValidator,
-} = require('../validators/medicineEnrichmentValidator');
 
 // Public read-only catalog browsing - the customer-facing medicine catalog
 // (search, detail, pharmacy availability) needs to be visible to anonymous
@@ -46,10 +31,6 @@ const {
 // that single-segment static path isn't captured as an id param.
 router.get('/search', searchQueryValidator, validate, searchMedicines);
 router.get('/autocomplete', autocompleteQueryValidator, validate, getAutocomplete);
-router.post('/enrich-all', protect, authorize('Admin'), enrichAllMedicines);
-router.post('/retry-failed', protect, authorize('Admin'), retryFailedMedicines);
-router.get('/enrichment-stats', protect, authorize('Admin'), getEnrichmentStats);
-router.get('/needs-review', protect, authorize('Admin'), needsReviewQueryValidator, validate, getNeedsReview);
 
 router
   .route('/')
@@ -64,12 +45,5 @@ router
   .route('/:id')
   .put(protect, authorize('Admin'), updateMedicineValidator, validate, updateMedicine)
   .delete(protect, authorize('Admin'), idParamValidator, validate, deleteMedicine);
-
-// AI enrichment (Admin only - see section 17 of the feature spec: only
-// authorized Admins may trigger AI/API calls, and all such calls happen
-// server-side here, never from the frontend).
-router.post('/:id/enrich', protect, authorize('Admin'), enrichValidator, validate, enrichMedicine);
-router.post('/:id/review/approve', protect, authorize('Admin'), enrichmentIdParamValidator, validate, approveReview);
-router.patch('/:id/review/name', protect, authorize('Admin'), updateNameValidator, validate, updateMedicineNameAndRetry);
 
 module.exports = router;

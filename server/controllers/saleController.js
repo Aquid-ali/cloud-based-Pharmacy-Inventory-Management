@@ -339,4 +339,129 @@ const getSalesStats = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createSale, getSales, getSalesStats };
+/**
+ * @desc    Comprehensive analytics for Sales & Analytics dashboard
+ * @route   GET /api/sales/analytics
+ * @access  Private (Admin)
+ */
+const getSalesAnalytics = asyncHandler(async (req, res) => {
+  const filter = ownScopeFilter(req);
+  
+  if (!filter) {
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalTransactions: 0,
+        totalUnitsSold: 0,
+        totalRevenue: 0,
+        totalCost: 0,
+        totalProfit: 0,
+        profitMargin: 0,
+        trend: [],
+        topMedicines: [],
+      }
+    });
+  }
+
+  const { startDate, endDate } = req.query;
+  const matchFilter = { ...filter };
+
+  if (startDate || endDate) {
+    matchFilter.createdAt = {};
+    if (startDate) matchFilter.createdAt.$gte = new Date(startDate);
+    if (endDate) matchFilter.createdAt.$lte = new Date(endDate);
+  }
+
+  // 1. Overall stats
+  const statsAgg = await Sale.aggregate([
+    { $match: matchFilter },
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$_id',
+        revenue: { $first: '$totalAmount' },
+        cost: { $first: '$totalCost' },
+        profit: { $first: '$profit' },
+        unitsSold: { $sum: '$items.quantity' },
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        totalTransactions: { $sum: 1 },
+        totalUnitsSold: { $sum: '$unitsSold' },
+        totalRevenue: { $sum: '$revenue' },
+        totalCost: { $sum: '$cost' },
+        totalProfit: { $sum: '$profit' },
+      }
+    }
+  ]);
+
+  const stats = statsAgg[0] || {
+    totalTransactions: 0,
+    totalUnitsSold: 0,
+    totalRevenue: 0,
+    totalCost: 0,
+    totalProfit: 0,
+  };
+
+  const profitMargin = stats.totalRevenue > 0 ? (stats.totalProfit / stats.totalRevenue) * 100 : 0;
+
+  // 2. Trend (group by day)
+  const trendAgg = await Sale.aggregate([
+    { $match: matchFilter },
+    {
+      $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        revenue: { $sum: '$totalAmount' },
+        cost: { $sum: '$totalCost' },
+        profit: { $sum: '$profit' }
+      }
+    },
+    { $sort: { _id: 1 } }
+  ]);
+
+  const trend = trendAgg.map(t => ({
+    date: t._id,
+    revenue: t.revenue,
+    cost: t.cost,
+    profit: t.profit
+  }));
+
+  // 3. Top selling medicines
+  const topMedicinesAgg = await Sale.aggregate([
+    { $match: matchFilter },
+    { $unwind: '$items' },
+    {
+      $group: {
+        _id: '$items.medicineName',
+        quantitySold: { $sum: '$items.quantity' },
+        revenue: { $sum: '$items.lineTotal' },
+        cost: { $sum: '$items.lineCost' },
+      }
+    },
+    {
+      $project: {
+        medicineName: '$_id',
+        quantitySold: 1,
+        revenue: 1,
+        profit: { $subtract: ['$revenue', '$cost'] },
+        _id: 0
+      }
+    },
+    { $sort: { quantitySold: -1 } },
+    { $limit: 10 }
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      ...stats,
+      profitMargin,
+      trend,
+      topMedicines: topMedicinesAgg
+    }
+  });
+});
+
+module.exports = { createSale, getSales, getSalesStats, getSalesAnalytics };

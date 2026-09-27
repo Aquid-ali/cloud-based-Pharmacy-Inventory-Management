@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { createSale, getSales, getSalesStats } = require('../controllers/saleController');
+const { createSale, getSales, getSalesStats, getSalesAnalytics } = require('../controllers/saleController');
 const { protect, authorize } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
 const { createSaleValidator } = require('../validators/saleValidator');
@@ -13,6 +13,7 @@ router.use(authorize('Admin'));
 
 // Must be declared before any '/:id' route so it isn't captured as an id param
 router.get('/stats/summary', getSalesStats);
+router.get('/analytics', getSalesAnalytics);
 
 router.post('/', createSaleValidator, validate, createSale);
 router.get('/', getSales);
