@@ -59,7 +59,7 @@ const saleSchema = new mongoose.Schema(
     customerName: { type: String, trim: true, default: 'Walk-in Customer' },
     paymentMethod: {
       type: String,
-      enum: ['Cash', 'UPI', 'Card'],
+      enum: ['Cash', 'UPI', 'Card', 'COD'],
       required: true,
     },
     // subtotal = sum of item selling prices; tax is GST collected on top of that

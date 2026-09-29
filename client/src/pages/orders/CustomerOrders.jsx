@@ -13,6 +13,7 @@ const CustomerOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const [isCodCollected, setIsCodCollected] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -32,6 +33,7 @@ const CustomerOrders = () => {
 
   const handleRowClick = (order) => {
     setSelectedOrder(order);
+    setIsCodCollected(false);
     setIsModalOpen(true);
   };
 
@@ -235,7 +237,7 @@ const CustomerOrders = () => {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+            <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3 items-center">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50"
@@ -243,14 +245,24 @@ const CustomerOrders = () => {
                 Close
               </button>
               {!selectedOrder.saleId && (
-                <button
-                  onClick={handleConfirmSale}
-                  disabled={confirmLoading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-brandPrimary rounded-lg shadow-sm hover:bg-brandPrimary/90 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {confirmLoading && <Spinner size="sm" />}
-                  Confirm Payment & Complete Sale
-                </button>
+                <>
+                  {selectedOrder.paymentMethod === 'COD' && !isCodCollected && (
+                    <button
+                      onClick={() => setIsCodCollected(true)}
+                      className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-100 rounded-lg hover:bg-emerald-200 transition-colors shadow-sm"
+                    >
+                      Confirm Payment Collected
+                    </button>
+                  )}
+                  <button
+                    onClick={handleConfirmSale}
+                    disabled={confirmLoading || (selectedOrder.paymentMethod === 'COD' && !isCodCollected)}
+                    className="px-4 py-2 text-sm font-medium text-white bg-brandPrimary rounded-lg shadow-sm hover:bg-brandPrimary/90 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {confirmLoading && <Spinner size="sm" />}
+                    Confirm Payment & Complete Sale
+                  </button>
+                </>
               )}
             </div>
           </div>
