@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FiBarChart2, FiTrendingUp, FiDollarSign, FiClock, FiDownload, FiSearch, 
-  FiChevronLeft, FiChevronRight, FiEye, FiX 
+  FiChevronLeft, FiChevronRight, FiEye, FiX, FiShoppingBag, FiPackage, FiLayers 
 } from 'react-icons/fi';
 import { getSalesAnalytics, getSales } from '../../services/saleService';
 import toast from 'react-hot-toast';
