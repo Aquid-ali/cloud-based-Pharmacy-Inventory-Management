@@ -5,3 +5,4 @@ export const getMyOrders = () => api.get('/orders/mine');
 export const getStoreOrders = () => api.get('/orders');
 export const getOrderById = (id) => api.get(`/orders/${id}`);
 export const updateOrderStatus = (id, status) => api.patch(`/orders/${id}/status`, { status });
+export const confirmOrderSale = (id) => api.post(`/orders/${id}/confirm-sale`);

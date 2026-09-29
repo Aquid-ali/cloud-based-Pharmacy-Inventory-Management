@@ -96,6 +96,10 @@ const orderSchema = new mongoose.Schema(
       enum: ['Placed', 'Processing', 'Out for Delivery', 'Delivered', 'Cancelled'],
       default: 'Placed',
     },
+    saleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Sale',
+    },
   },
   { timestamps: true }
 );

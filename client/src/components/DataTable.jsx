@@ -1,7 +1,7 @@
 import React from 'react';
 import EmptyState from './EmptyState';
 
-const DataTable = ({ columns, data, emptyTitle, emptyMessage }) => {
+const DataTable = ({ columns, data, emptyTitle, emptyMessage, onRowClick }) => {
   if (!data?.length) {
     return (
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm">
@@ -28,7 +28,11 @@ const DataTable = ({ columns, data, emptyTitle, emptyMessage }) => {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {data.map((row, idx) => (
-              <tr key={row._id || row.id || idx} className="hover:bg-slate-50/50 transition-colors">
+              <tr 
+                key={row._id || row.id || idx} 
+                className={`transition-colors ${onRowClick ? 'hover:bg-slate-100 cursor-pointer' : 'hover:bg-slate-50/50'}`}
+                onClick={() => onRowClick && onRowClick(row)}
+              >
                 {columns.map((col) => (
                   <td key={col.key} className="px-5 py-4 text-slate-700 whitespace-nowrap">
                     {col.render ? col.render(row) : row[col.key]}

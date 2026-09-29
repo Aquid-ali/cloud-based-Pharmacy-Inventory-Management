@@ -4,6 +4,7 @@ const Medicine = require('../models/Medicine');
 const Store = require('../models/Store');
 const Pharmacy = require('../models/Pharmacy');
 const Inventory = require('../models/Inventory');
+const Sale = require('../models/Sale');
 const ApiError = require('../utils/ApiError');
 
 const FREE_DELIVERY_THRESHOLD = 500;
@@ -56,13 +57,6 @@ const createStoreOrder = async (req, res) => {
 
   const deliveryFee = deliveryType === 'Delivery' && subtotal < FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
   const totalAmount = subtotal + deliveryFee;
-
-  // Decrement stock for each medicine (triggers the pre-save status hook)
-  for (const item of orderItems) {
-    const medicine = medicineById.get(item.medicine.toString());
-    medicine.quantity -= item.quantity;
-    await medicine.save();
-  }
 
   const order = await Order.create({
     user: req.user._id,
@@ -141,12 +135,6 @@ const createPharmacyOrder = async (req, res) => {
 
   const deliveryFee = deliveryType === 'Delivery' && subtotal < FREE_DELIVERY_THRESHOLD ? DELIVERY_FEE : 0;
   const totalAmount = subtotal + deliveryFee;
-
-  // Decrement stock for each batch (triggers the pre-save status hook)
-  for (const { batch, quantity } of batchesToDecrement) {
-    batch.quantity -= quantity;
-    await batch.save();
-  }
 
   const order = await Order.create({
     user: req.user._id,
@@ -292,4 +280,147 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { createOrder, getMyOrders, getStoreOrders, getOrderById, updateOrderStatus };
+/**
+ * @desc    Confirm an order, check stock, decrement stock, create a Sale, and update Order status.
+ * @route   POST /api/orders/:id/confirm-sale
+ * @access  Private (Admin)
+ */
+const confirmOrderSale = asyncHandler(async (req, res) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    throw new ApiError(404, 'Order not found');
+  }
+
+  if (order.saleId) {
+    throw new ApiError(400, 'This order has already been processed as a sale.');
+  }
+
+  const isStoreAdmin = !!req.user.store && !!order.store && order.store.equals(req.user.store._id);
+  const isPharmacyAdmin =
+    !!req.user.pharmacyId &&
+    !!order.pharmacy &&
+    order.pharmacy.equals(req.user.pharmacyId._id || req.user.pharmacyId);
+
+  if (!isStoreAdmin && !isPharmacyAdmin) {
+    throw new ApiError(403, 'You can only confirm orders belonging to your own store or pharmacy');
+  }
+
+  const saleItems = [];
+  let subtotal = 0;
+  let totalCost = 0;
+  
+  if (order.pharmacy) {
+    // Process Pharmacy/Inventory
+    const batchesToDecrement = [];
+    for (const item of order.items) {
+      // Find the specific inventory batch
+      const batch = await Inventory.findById(item.inventoryItem).populate('medicineId', 'name');
+      
+      if (!batch) {
+         throw new ApiError(404, `Inventory item not found for order item: ${item.medicineName}`);
+      }
+      if (batch.quantity < item.quantity) {
+         throw new ApiError(400, `Insufficient stock for ${item.medicineName}. Required: ${item.quantity}, Available: ${batch.quantity}`);
+      }
+
+      const lineTotal = item.sellingPrice * item.quantity;
+      const lineCost = batch.purchasePrice * item.quantity;
+      subtotal += lineTotal;
+      totalCost += lineCost;
+
+      saleItems.push({
+        inventoryItem: batch._id,
+        medicineName: item.medicineName,
+        batchNumber: batch.batchNumber,
+        quantity: item.quantity,
+        unitPrice: item.sellingPrice,
+        unitCost: batch.purchasePrice,
+        lineTotal,
+        lineCost,
+      });
+      batchesToDecrement.push({ batch, quantity: item.quantity });
+    }
+
+    for (const { batch, quantity } of batchesToDecrement) {
+      batch.quantity -= quantity;
+      await batch.save();
+    }
+  } else if (order.store) {
+    // Process Legacy Store/Medicine
+    const medicinesToDecrement = [];
+    for (const item of order.items) {
+      const medicine = await Medicine.findById(item.medicine);
+      
+      if (!medicine) {
+         throw new ApiError(404, `Medicine not found for order item: ${item.medicineName}`);
+      }
+      if (medicine.quantity < item.quantity) {
+         throw new ApiError(400, `Insufficient stock for ${item.medicineName}. Required: ${item.quantity}, Available: ${medicine.quantity}`);
+      }
+
+      const lineTotal = item.sellingPrice * item.quantity;
+      const lineCost = medicine.buyingPrice * item.quantity;
+      subtotal += lineTotal;
+      totalCost += lineCost;
+
+      saleItems.push({
+        medicine: medicine._id,
+        medicineName: item.medicineName,
+        batchNumber: medicine.batchNumber,
+        quantity: item.quantity,
+        unitPrice: item.sellingPrice,
+        unitCost: medicine.buyingPrice,
+        lineTotal,
+        lineCost,
+      });
+      medicinesToDecrement.push({ medicine, quantity: item.quantity });
+    }
+
+    for (const { medicine, quantity } of medicinesToDecrement) {
+      medicine.quantity -= quantity;
+      await medicine.save();
+    }
+  }
+
+  // Create Sale
+  const GST_RATE = 0.18; // Consistent with saleController
+  const tax = Math.round(subtotal * GST_RATE);
+  
+  const User = require('../models/User');
+  const customerUser = await User.findById(order.user).select('fullName');
+  
+  const sale = await Sale.create({
+    items: saleItems,
+    store: order.store || undefined,
+    pharmacy: order.pharmacy || undefined,
+    soldBy: req.user._id,
+    customerName: customerUser ? customerUser.fullName : 'Online Customer',
+    paymentMethod: order.paymentMethod,
+    subtotal,
+    tax,
+    totalAmount: subtotal + tax,
+    totalCost,
+    profit: subtotal - totalCost,
+  });
+
+  // Update Order
+  order.saleId = sale._id;
+  order.paymentStatus = 'Paid';
+  order.status = 'Processing';
+  await order.save();
+
+  const populatedOrder = await order.populate([
+    { path: 'store' },
+    { path: 'pharmacy' },
+    { path: 'user', select: 'fullName email phone' },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    message: 'Order confirmed and sale created successfully',
+    data: { order: populatedOrder, sale },
+  });
+});
+
+module.exports = { createOrder, getMyOrders, getStoreOrders, getOrderById, updateOrderStatus, confirmOrderSale };
