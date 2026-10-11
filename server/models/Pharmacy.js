@@ -76,6 +76,13 @@ const pharmacySchema = new mongoose.Schema(
       lat: { type: Number },
       lng: { type: Number },
     },
+    // Path to the pharmacy's UPI QR code image (relative to the uploads
+    // directory). Managed via dedicated upload/delete endpoints in
+    // pharmacyController; never set through the generic update route.
+    upiQrCode: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

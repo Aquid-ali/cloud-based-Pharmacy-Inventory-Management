@@ -1,4 +1,6 @@
 const asyncHandler = require('express-async-handler');
+const path = require('path');
+const fs = require('fs');
 const Pharmacy = require('../models/Pharmacy');
 const Inventory = require('../models/Inventory');
 const ApiError = require('../utils/ApiError');
@@ -284,7 +286,7 @@ const updatePharmacy = asyncHandler(async (req, res) => {
   // client-settable directly - it's only ever derived below, either from
   // geocoding the address or from a validated `manualLocation` override,
   // never trusted as-is from the request body.
-  const { ownerId, pharmacyId, location, manualLocation, ...updates } = req.body;
+  const { ownerId, pharmacyId, location, manualLocation, upiQrCode, ...updates } = req.body;
 
   if (manualLocation !== undefined) {
     const lat = Number(manualLocation?.lat);
@@ -371,6 +373,103 @@ const deletePharmacy = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * @desc    Upload or replace the pharmacy's UPI QR code image
+ * @route   POST /api/pharmacies/:id/qr-code
+ * @access  Private (Admin, owner only)
+ */
+const uploadUpiQrCode = asyncHandler(async (req, res) => {
+  const pharmacy = await Pharmacy.findById(req.params.id);
+
+  if (!pharmacy) {
+    throw new ApiError(404, 'Pharmacy not found');
+  }
+
+  if (!pharmacy.ownerId.equals(req.user._id)) {
+    throw new ApiError(403, 'You can only manage pharmacies you own');
+  }
+
+  if (!req.file) {
+    throw new ApiError(400, 'Please upload a QR code image');
+  }
+
+  // Delete the previous QR code file if one existed
+  if (pharmacy.upiQrCode) {
+    const oldPath = path.join(__dirname, '..', pharmacy.upiQrCode);
+    if (fs.existsSync(oldPath)) {
+      fs.unlinkSync(oldPath);
+    }
+  }
+
+  // Store the relative path (from server root) so it's servable via the
+  // existing express.static('/uploads', ...) mount in app.js.
+  pharmacy.upiQrCode = `uploads/qr-codes/${req.file.filename}`;
+  await pharmacy.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'UPI QR code uploaded successfully',
+    data: { upiQrCode: pharmacy.upiQrCode },
+  });
+});
+
+/**
+ * @desc    Delete the pharmacy's UPI QR code image
+ * @route   DELETE /api/pharmacies/:id/qr-code
+ * @access  Private (Admin, owner only)
+ */
+const deleteUpiQrCode = asyncHandler(async (req, res) => {
+  const pharmacy = await Pharmacy.findById(req.params.id);
+
+  if (!pharmacy) {
+    throw new ApiError(404, 'Pharmacy not found');
+  }
+
+  if (!pharmacy.ownerId.equals(req.user._id)) {
+    throw new ApiError(403, 'You can only manage pharmacies you own');
+  }
+
+  if (!pharmacy.upiQrCode) {
+    throw new ApiError(404, 'No UPI QR code to delete');
+  }
+
+  const filePath = path.join(__dirname, '..', pharmacy.upiQrCode);
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+  }
+
+  pharmacy.upiQrCode = null;
+  await pharmacy.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'UPI QR code deleted successfully',
+  });
+});
+
+/**
+ * @desc    Get a pharmacy's UPI QR code (customer-facing). Returns just the
+ *          QR code URL so the checkout popup can fetch it without loading
+ *          the entire pharmacy document (which includes admin-only fields).
+ * @route   GET /api/pharmacies/:id/qr-code
+ * @access  Private (any authenticated user)
+ */
+const getPharmacyQrCode = asyncHandler(async (req, res) => {
+  const pharmacy = await Pharmacy.findById(req.params.id).select('upiQrCode name');
+
+  if (!pharmacy) {
+    throw new ApiError(404, 'Pharmacy not found');
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      pharmacyName: pharmacy.name,
+      upiQrCode: pharmacy.upiQrCode || null,
+    },
+  });
+});
+
 module.exports = {
   createPharmacy,
   getPharmacies,
@@ -379,4 +478,7 @@ module.exports = {
   getPharmacyById,
   updatePharmacy,
   deletePharmacy,
+  uploadUpiQrCode,
+  deleteUpiQrCode,
+  getPharmacyQrCode,
 };

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import toast from 'react-hot-toast';
+import { FiUpload, FiTrash2, FiSmartphone } from 'react-icons/fi';
 import PageHeader from '../../components/PageHeader';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
-import { getPharmacyById, updatePharmacy } from '../../services/pharmacyService';
+import { getPharmacyById, updatePharmacy, uploadUpiQrCode, deleteUpiQrCode } from '../../services/pharmacyService';
 import PharmacySingleLocationMap from '../../components/map/PharmacySingleLocationMap';
 import useAuth from '../../hooks/useAuth';
 
@@ -21,6 +22,15 @@ const buildForm = (pharmacy) => ({
   status: pharmacy?.status || 'active',
 });
 
+/** Resolve a server-relative path like "uploads/qr-codes/abc.png" to a full URL. */
+const toFullUrl = (relativePath) => {
+  if (!relativePath) return null;
+  if (relativePath.startsWith('http')) return relativePath;
+  const base = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || '';
+  // Ensure exactly one '/' between base and path
+  return `${base}${base.endsWith('/') ? '' : '/'}${relativePath}`;
+};
+
 const PharmacyProfile = () => {
   const { user, updateUser } = useAuth();
   const pharmacyId = user?.pharmacyId?._id || (typeof user?.pharmacyId === 'string' ? user.pharmacyId : null);
@@ -33,6 +43,13 @@ const PharmacyProfile = () => {
   // re-geocoding the address on the next save, and is cleared once that
   // save succeeds (the fresh saved location becomes the new displayed one).
   const [manualLocation, setManualLocation] = useState(null);
+
+  // ── UPI QR Code state ──
+  const qrFileInputRef = useRef(null);
+  const [qrUploading, setQrUploading] = useState(false);
+  const [qrDeleting, setQrDeleting] = useState(false);
+  const [qrPreviewUrl, setQrPreviewUrl] = useState(null); // local object URL for immediate preview
+  const savedQrCode = pharmacy?.upiQrCode || null;
 
   useEffect(() => {
     if (!pharmacyId) {
@@ -80,9 +97,50 @@ const PharmacyProfile = () => {
     }
   };
 
+  // ── UPI QR Code handlers ──
+  const handleQrUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Immediately show a local preview
+    setQrPreviewUrl(URL.createObjectURL(file));
+    setQrUploading(true);
+    try {
+      const { data } = await uploadUpiQrCode(pharmacyId, file);
+      setPharmacy((prev) => ({ ...prev, upiQrCode: data.data.upiQrCode }));
+      setQrPreviewUrl(null); // revert to server URL
+      toast.success('UPI QR code uploaded');
+    } catch (error) {
+      setQrPreviewUrl(null);
+      toast.error(error.response?.data?.message || 'Failed to upload QR code');
+    } finally {
+      setQrUploading(false);
+      // Reset input so the same file can be re-selected
+      if (qrFileInputRef.current) qrFileInputRef.current.value = '';
+    }
+  };
+
+  const handleQrDelete = async () => {
+    if (!window.confirm('Delete the UPI QR code? Customers won\'t be able to pay via UPI until you upload a new one.')) return;
+    setQrDeleting(true);
+    try {
+      await deleteUpiQrCode(pharmacyId);
+      setPharmacy((prev) => ({ ...prev, upiQrCode: null }));
+      setQrPreviewUrl(null);
+      toast.success('UPI QR code deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete QR code');
+    } finally {
+      setQrDeleting(false);
+    }
+  };
+
   // The preview shows the pending manual pin position if the admin just
   // dragged it, otherwise the last-saved location from the server.
   const previewLocation = manualLocation || pharmacy?.location || null;
+
+  // QR code display URL: local preview (while uploading) > server-saved path
+  const displayQrUrl = qrPreviewUrl || toFullUrl(savedQrCode);
 
   if (!pharmacyId) {
     return (
@@ -171,8 +229,97 @@ const PharmacyProfile = () => {
           {saving ? 'Saving...' : 'Save Profile'}
         </button>
       </form>
+
+      {/* ── UPI QR Code Management ── */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 space-y-5">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-violet-500/10 text-violet-600 flex items-center justify-center shrink-0">
+            <FiSmartphone size={20} />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-ink">UPI QR Code</h2>
+            <p className="text-[11px] text-ink-faint">
+              Upload your pharmacy's UPI QR code so customers can pay online during checkout.
+            </p>
+          </div>
+        </div>
+
+        {displayQrUrl ? (
+          <div className="flex flex-col sm:flex-row items-start gap-5">
+            {/* QR preview */}
+            <div className="relative group">
+              <div className="w-48 h-48 rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 p-2 flex items-center justify-center overflow-hidden">
+                <img
+                  src={displayQrUrl}
+                  alt="UPI QR Code"
+                  className="max-w-full max-h-full object-contain rounded-xl"
+                />
+              </div>
+              {qrUploading && (
+                <div className="absolute inset-0 bg-white/70 rounded-2xl flex items-center justify-center">
+                  <Spinner size="sm" />
+                </div>
+              )}
+            </div>
+            {/* Actions */}
+            <div className="flex flex-col gap-2 pt-1">
+              <label
+                className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-2xl text-xs font-semibold cursor-pointer hover:bg-violet-100 transition-colors"
+              >
+                <FiUpload size={14} />
+                Replace QR Code
+                <input
+                  ref={qrFileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handleQrUpload}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={handleQrDelete}
+                disabled={qrDeleting}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-2xl text-xs font-semibold hover:bg-rose-100 disabled:opacity-50 transition-colors"
+              >
+                <FiTrash2 size={14} />
+                {qrDeleting ? 'Deleting...' : 'Delete QR Code'}
+              </button>
+              <p className="text-[11px] text-slate-400 max-w-xs mt-1">
+                Customers selecting UPI payment at checkout will see this QR code. 
+                Supports JPEG, PNG, or WebP up to 5 MB.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+            <div className="w-16 h-16 rounded-full bg-violet-100 text-violet-500 flex items-center justify-center mb-3">
+              <FiSmartphone size={28} />
+            </div>
+            <p className="text-sm font-medium text-slate-600 mb-1">No UPI QR code uploaded</p>
+            <p className="text-xs text-slate-400 mb-4 text-center max-w-sm">
+              Upload your pharmacy's UPI QR code so customers can scan and pay directly from checkout.
+            </p>
+            <label
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brandPrimary text-white rounded-2xl text-sm font-semibold cursor-pointer hover:bg-brandPrimaryHover transition-colors"
+            >
+              <FiUpload size={16} />
+              Upload QR Code
+              <input
+                ref={qrFileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleQrUpload}
+              />
+            </label>
+            {qrUploading && <Spinner size="sm" className="mt-3" />}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default PharmacyProfile;
+

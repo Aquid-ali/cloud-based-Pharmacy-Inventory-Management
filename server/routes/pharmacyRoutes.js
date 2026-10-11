@@ -9,6 +9,9 @@ const {
   getPharmacyById,
   updatePharmacy,
   deletePharmacy,
+  uploadUpiQrCode,
+  deleteUpiQrCode,
+  getPharmacyQrCode,
 } = require('../controllers/pharmacyController');
 
 const { protect, authorize } = require('../middleware/authMiddleware');
@@ -21,6 +24,7 @@ const {
   nearbyQueryValidator,
   browseInventoryQueryValidator,
 } = require('../validators/pharmacyValidator');
+const { uploadQrCode } = require('../middleware/qrCodeUploadMiddleware');
 
 // All pharmacy routes require authentication
 router.use(protect);
@@ -34,6 +38,13 @@ router
   .get(listQueryValidator, validate, getPharmacies)
   .post(authorize('Admin'), createPharmacyValidator, validate, createPharmacy);
 
+// QR code management (must be before generic /:id to avoid capture)
+router
+  .route('/:id/qr-code')
+  .get(idParamValidator, validate, getPharmacyQrCode)
+  .post(authorize('Admin'), idParamValidator, validate, uploadQrCode.single('qrCode'), uploadUpiQrCode)
+  .delete(authorize('Admin'), idParamValidator, validate, deleteUpiQrCode);
+
 router
   .route('/:id')
   .get(idParamValidator, validate, getPharmacyById)
@@ -41,3 +52,4 @@ router
   .delete(authorize('Admin'), idParamValidator, validate, deletePharmacy);
 
 module.exports = router;
+
