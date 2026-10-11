@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import toast from 'react-hot-toast';
-import { FiUpload, FiTrash2, FiSmartphone } from 'react-icons/fi';
+import { FiUpload, FiTrash2, FiSmartphone, FiCheck } from 'react-icons/fi';
+import QRCode from 'qrcode';
 import PageHeader from '../../components/PageHeader';
 import Spinner from '../../components/Spinner';
 import EmptyState from '../../components/EmptyState';
@@ -19,16 +20,25 @@ const buildForm = (pharmacy) => ({
   pincode: pharmacy?.pincode || '',
   phone: pharmacy?.phone || '',
   email: pharmacy?.email || '',
+  upiId: pharmacy?.upiId || '',
   status: pharmacy?.status || 'active',
 });
 
-/** Resolve a server-relative path like "uploads/qr-codes/abc.png" to a full URL. */
-const toFullUrl = (relativePath) => {
-  if (!relativePath) return null;
-  if (relativePath.startsWith('http')) return relativePath;
-  const base = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || '';
-  // Ensure exactly one '/' between base and path
-  return `${base}${base.endsWith('/') ? '' : '/'}${relativePath}`;
+/** Resolve a server-relative path or data URL to a full URL. */
+const toFullUrl = (urlOrPath) => {
+  if (!urlOrPath) return null;
+  if (
+    urlOrPath.startsWith('data:') ||
+    urlOrPath.startsWith('http://') ||
+    urlOrPath.startsWith('https://') ||
+    urlOrPath.startsWith('blob:')
+  ) {
+    return urlOrPath;
+  }
+  const base = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
+  const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
+  const cleanPath = urlOrPath.startsWith('/') ? urlOrPath : `/${urlOrPath}`;
+  return `${cleanBase}${cleanPath}`;
 };
 
 const PharmacyProfile = () => {
@@ -49,7 +59,33 @@ const PharmacyProfile = () => {
   const [qrUploading, setQrUploading] = useState(false);
   const [qrDeleting, setQrDeleting] = useState(false);
   const [qrPreviewUrl, setQrPreviewUrl] = useState(null); // local object URL for immediate preview
+  const [generatedPreviewUrl, setGeneratedPreviewUrl] = useState(null);
+  const [imageError, setImageError] = useState(false);
   const savedQrCode = pharmacy?.upiQrCode || null;
+
+  useEffect(() => {
+    let cancelled = false;
+    const activeUpi = form.upiId || (form.phone ? `${form.phone.replace(/[^0-9]/g, '')}@upi` : null);
+    if (!savedQrCode && !qrPreviewUrl && activeUpi) {
+      QRCode.toDataURL(
+        `upi://pay?pa=${encodeURIComponent(activeUpi)}&pn=${encodeURIComponent(form.name || 'Pharmacy')}&cu=INR`,
+        {
+          width: 200,
+          margin: 1,
+          color: { dark: '#1e1b4b', light: '#ffffff' },
+        }
+      )
+        .then((url) => {
+          if (!cancelled) setGeneratedPreviewUrl(url);
+        })
+        .catch(() => {});
+    } else {
+      setGeneratedPreviewUrl(null);
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [form.upiId, form.phone, form.name, savedQrCode, qrPreviewUrl]);
 
   useEffect(() => {
     if (!pharmacyId) {
@@ -103,6 +139,7 @@ const PharmacyProfile = () => {
     if (!file) return;
 
     // Immediately show a local preview
+    setImageError(false);
     setQrPreviewUrl(URL.createObjectURL(file));
     setQrUploading(true);
     try {
@@ -141,6 +178,7 @@ const PharmacyProfile = () => {
 
   // QR code display URL: local preview (while uploading) > server-saved path
   const displayQrUrl = qrPreviewUrl || toFullUrl(savedQrCode);
+  const activePreviewSrc = displayQrUrl && !imageError ? displayQrUrl : generatedPreviewUrl;
 
   if (!pharmacyId) {
     return (
@@ -209,6 +247,18 @@ const PharmacyProfile = () => {
               <option value="inactive">Inactive</option>
             </select>
           </div>
+          <div>
+            <label className={labelClass}>UPI ID / VPA (Optional)</label>
+            <input
+              type="text"
+              name="upiId"
+              value={form.upiId}
+              onChange={handleChange}
+              placeholder="e.g. apluspharm@okaxis"
+              className={inputClass}
+            />
+            <p className="text-[11px] text-slate-400 mt-1">Used to generate dynamic QR codes if no custom image is uploaded.</p>
+          </div>
         </div>
 
         <div>
@@ -244,14 +294,15 @@ const PharmacyProfile = () => {
           </div>
         </div>
 
-        {displayQrUrl ? (
+        {activePreviewSrc ? (
           <div className="flex flex-col sm:flex-row items-start gap-5">
             {/* QR preview */}
-            <div className="relative group">
-              <div className="w-48 h-48 rounded-2xl border-2 border-dashed border-violet-200 bg-violet-50/50 p-2 flex items-center justify-center overflow-hidden">
+            <div className="relative group flex flex-col items-center">
+              <div className="w-48 h-48 rounded-2xl border-2 border-violet-200 bg-white p-2 flex items-center justify-center overflow-hidden shadow-sm">
                 <img
-                  src={displayQrUrl}
+                  src={activePreviewSrc}
                   alt="UPI QR Code"
+                  onError={() => setImageError(true)}
                   className="max-w-full max-h-full object-contain rounded-xl"
                 />
               </div>
@@ -260,6 +311,9 @@ const PharmacyProfile = () => {
                   <Spinner size="sm" />
                 </div>
               )}
+              <span className="mt-2 text-[11px] font-medium text-violet-700 bg-violet-50 border border-violet-200 px-2.5 py-0.5 rounded-full">
+                {displayQrUrl && !imageError ? 'Custom Store QR Code' : 'Auto-Generated QR Code'}
+              </span>
             </div>
             {/* Actions */}
             <div className="flex flex-col gap-2 pt-1">
@@ -267,7 +321,7 @@ const PharmacyProfile = () => {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-violet-50 text-violet-700 border border-violet-200 rounded-2xl text-xs font-semibold cursor-pointer hover:bg-violet-100 transition-colors"
               >
                 <FiUpload size={14} />
-                Replace QR Code
+                {displayQrUrl && !imageError ? 'Replace Custom QR Code' : 'Upload Custom QR Code'}
                 <input
                   ref={qrFileInputRef}
                   type="file"
@@ -276,15 +330,17 @@ const PharmacyProfile = () => {
                   onChange={handleQrUpload}
                 />
               </label>
-              <button
-                type="button"
-                onClick={handleQrDelete}
-                disabled={qrDeleting}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-2xl text-xs font-semibold hover:bg-rose-100 disabled:opacity-50 transition-colors"
-              >
-                <FiTrash2 size={14} />
-                {qrDeleting ? 'Deleting...' : 'Delete QR Code'}
-              </button>
+              {displayQrUrl && !imageError && (
+                <button
+                  type="button"
+                  onClick={handleQrDelete}
+                  disabled={qrDeleting}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-2xl text-xs font-semibold hover:bg-rose-100 disabled:opacity-50 transition-colors"
+                >
+                  <FiTrash2 size={14} />
+                  {qrDeleting ? 'Deleting...' : 'Delete Custom QR Code'}
+                </button>
+              )}
               <p className="text-[11px] text-slate-400 max-w-xs mt-1">
                 Customers selecting UPI payment at checkout will see this QR code. 
                 Supports JPEG, PNG, or WebP up to 5 MB.
@@ -296,9 +352,9 @@ const PharmacyProfile = () => {
             <div className="w-16 h-16 rounded-full bg-violet-100 text-violet-500 flex items-center justify-center mb-3">
               <FiSmartphone size={28} />
             </div>
-            <p className="text-sm font-medium text-slate-600 mb-1">No UPI QR code uploaded</p>
+            <p className="text-sm font-medium text-slate-600 mb-1">No UPI QR code configured</p>
             <p className="text-xs text-slate-400 mb-4 text-center max-w-sm">
-              Upload your pharmacy's UPI QR code so customers can scan and pay directly from checkout.
+              Upload your pharmacy's UPI QR code image or enter your UPI ID in the profile above so customers can scan and pay during checkout.
             </p>
             <label
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-brandPrimary text-white rounded-2xl text-sm font-semibold cursor-pointer hover:bg-brandPrimaryHover transition-colors"

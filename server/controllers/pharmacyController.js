@@ -393,17 +393,27 @@ const uploadUpiQrCode = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Please upload a QR code image');
   }
 
-  // Delete the previous QR code file if one existed
-  if (pharmacy.upiQrCode) {
-    const oldPath = path.join(__dirname, '..', pharmacy.upiQrCode);
+  // Delete previous QR code file if it was a file path on disk
+  if (pharmacy.upiQrCode && !pharmacy.upiQrCode.startsWith('data:')) {
+    const oldPath = path.join(__dirname, '..', pharmacy.upiQrCode.startsWith('/') ? pharmacy.upiQrCode.slice(1) : pharmacy.upiQrCode);
     if (fs.existsSync(oldPath)) {
-      fs.unlinkSync(oldPath);
+      try { fs.unlinkSync(oldPath); } catch {}
     }
   }
 
-  // Store the relative path (from server root) so it's servable via the
-  // existing express.static('/uploads', ...) mount in app.js.
-  pharmacy.upiQrCode = `uploads/qr-codes/${req.file.filename}`;
+  // Convert the uploaded file to a base64 Data URL.
+  // This ensures the QR code is permanently stored in MongoDB, survives
+  // ephemeral cloud restarts (like Render), and completely avoids
+  // cross-origin/CORP image blocking issues in browsers.
+  try {
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const mimeType = req.file.mimetype || 'image/png';
+    pharmacy.upiQrCode = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+  } catch (readErr) {
+    // Fallback to relative path if reading fails
+    pharmacy.upiQrCode = `uploads/qr-codes/${req.file.filename}`;
+  }
+
   await pharmacy.save();
 
   res.status(200).json({
@@ -433,9 +443,13 @@ const deleteUpiQrCode = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'No UPI QR code to delete');
   }
 
-  const filePath = path.join(__dirname, '..', pharmacy.upiQrCode);
-  if (fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+  // If it was stored as a local file, remove it from disk
+  if (!pharmacy.upiQrCode.startsWith('data:')) {
+    const cleanRel = pharmacy.upiQrCode.startsWith('/') ? pharmacy.upiQrCode.slice(1) : pharmacy.upiQrCode;
+    const filePath = path.join(__dirname, '..', cleanRel);
+    if (fs.existsSync(filePath)) {
+      try { fs.unlinkSync(filePath); } catch {}
+    }
   }
 
   pharmacy.upiQrCode = null;
@@ -448,24 +462,51 @@ const deleteUpiQrCode = asyncHandler(async (req, res) => {
 });
 
 /**
- * @desc    Get a pharmacy's UPI QR code (customer-facing). Returns just the
- *          QR code URL so the checkout popup can fetch it without loading
- *          the entire pharmacy document (which includes admin-only fields).
+ * @desc    Get a pharmacy's UPI QR code and UPI details (customer-facing).
+ *          Returns the QR code URL/data along with upiId and pharmacyName so the
+ *          checkout popup can display or dynamically generate a valid UPI QR code.
  * @route   GET /api/pharmacies/:id/qr-code
  * @access  Private (any authenticated user)
  */
 const getPharmacyQrCode = asyncHandler(async (req, res) => {
-  const pharmacy = await Pharmacy.findById(req.params.id).select('upiQrCode name');
+  const pharmacy = await Pharmacy.findById(req.params.id).select('upiQrCode upiId name phone');
 
   if (!pharmacy) {
     throw new ApiError(404, 'Pharmacy not found');
   }
 
+  let upiQrCode = pharmacy.upiQrCode || null;
+
+  // If stored as a relative file path, ensure the file actually exists on disk
+  if (upiQrCode && !upiQrCode.startsWith('data:') && !upiQrCode.startsWith('http')) {
+    const cleanRel = upiQrCode.startsWith('/') ? upiQrCode.slice(1) : upiQrCode;
+    const diskPath = path.join(__dirname, '..', cleanRel);
+    if (fs.existsSync(diskPath)) {
+      // Convert existing disk file to data URL on the fly so client never runs into CORS/404 issues
+      try {
+        const ext = path.extname(diskPath).toLowerCase().replace('.', '');
+        const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext || 'png'}`;
+        const buf = fs.readFileSync(diskPath);
+        upiQrCode = `data:${mimeType};base64,${buf.toString('base64')}`;
+      } catch {}
+    } else {
+      // File missing on disk (e.g. wiped by ephemeral server restart)
+      upiQrCode = null;
+    }
+  }
+
+  // Generate fallback UPI ID from phone or pharmacy name if not explicitly set
+  const fallbackUpiId = pharmacy.upiId ||
+    (pharmacy.phone ? `${pharmacy.phone.replace(/[^0-9]/g, '')}@upi` : null) ||
+    `${pharmacy.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@upi`;
+
   res.status(200).json({
     success: true,
     data: {
       pharmacyName: pharmacy.name,
-      upiQrCode: pharmacy.upiQrCode || null,
+      upiQrCode,
+      upiId: pharmacy.upiId || fallbackUpiId,
+      phone: pharmacy.phone || null,
     },
   });
 });

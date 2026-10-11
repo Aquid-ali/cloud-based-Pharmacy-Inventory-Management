@@ -26,8 +26,12 @@ const app = express();
 // Trust the reverse proxy used by hosting platforms such as Render
 app.set('trust proxy', 1);
 
-// Security headers
-app.use(helmet());
+// Security headers - allow cross-origin resource access for public assets like images
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 // CORS
 // CLIENT_URL should contain your deployed frontend URL in production.
@@ -96,8 +100,15 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve static files (uploads)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Serve static files (uploads) with cross-origin access allowed
+app.use(
+  '/uploads',
+  (req, res, next) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  },
+  express.static(path.join(__dirname, 'uploads'))
+);
 
 // Routes
 app.use('/api/auth', authRoutes);
