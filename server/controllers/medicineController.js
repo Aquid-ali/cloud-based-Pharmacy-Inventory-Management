@@ -1,6 +1,8 @@
 const asyncHandler = require('express-async-handler');
 const { parse } = require('csv-parse/sync');
 const Medicine = require('../models/Medicine');
+const Inventory = require('../models/Inventory');
+const MedicineCatalog = require('../models/MedicineCatalog');
 const ApiError = require('../utils/ApiError');
 
 // This whole controller manages the legacy, per-store Medicine collection, which
@@ -113,6 +115,69 @@ const createMedicine = asyncHandler(async (req, res) => {
     imageUrl = `/uploads/medicines/${req.file.filename}`;
   }
 
+  // If the admin is pharmacy-scoped, route into MedicineCatalog + Inventory
+  if (req.user.pharmacyId && !req.user.store) {
+    const pharmacyId = req.user.pharmacyId._id || req.user.pharmacyId;
+    const {
+      medicineName,
+      genericName,
+      manufacturer,
+      category,
+      batchNumber,
+      expiryDate,
+      quantity,
+      purchasePrice,
+      buyingPrice,
+      sellingPrice,
+      description,
+      dosageForm,
+    } = req.body;
+
+    const medName = String(medicineName || '').trim();
+    let catalogItem = await MedicineCatalog.findOne({
+      name: new RegExp(`^${medName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+    });
+
+    if (!catalogItem) {
+      catalogItem = await MedicineCatalog.create({
+        name: medName,
+        composition: genericName || medName,
+        manufacturer: manufacturer || 'Standard',
+        category: category || 'Other',
+        dosageForm: dosageForm || 'Tablet',
+        description,
+        imageUrl,
+      });
+    }
+
+    const inventoryItem = await Inventory.create({
+      pharmacyId,
+      medicineId: catalogItem._id,
+      batchNumber: batchNumber || `BATCH-${Date.now().toString(36).toUpperCase()}`,
+      quantity: Number(quantity) || 0,
+      purchasePrice: Number(purchasePrice || buyingPrice) || 0,
+      sellingPrice: Number(sellingPrice) || 0,
+      expiryDate: expiryDate ? new Date(expiryDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Medicine created successfully',
+      data: {
+        medicine: {
+          _id: inventoryItem._id,
+          medicineName: catalogItem.name,
+          category: catalogItem.category,
+          batchNumber: inventoryItem.batchNumber,
+          quantity: inventoryItem.quantity,
+          sellingPrice: inventoryItem.sellingPrice,
+          expiryDate: inventoryItem.expiryDate,
+          status: inventoryItem.status,
+        },
+      },
+    });
+  }
+
   const medicine = await Medicine.create({
     ...req.body,
     imageUrl,
@@ -157,9 +222,107 @@ const getMedicines = asyncHandler(async (req, res) => {
 
   const filter = {};
 
-  // Admins only ever see their own store's medicines; customers may
-  // optionally filter by a store they've chosen to shop from. A pharmacy-scoped
-  // admin has no store, so they simply have no legacy medicines - not an error.
+  // Pharmacy-scoped admins store their stock in Inventory (referencing MedicineCatalog)
+  if (req.user.role === 'Admin' && req.user.pharmacyId && !req.user.store) {
+    const pharmacyId = req.user.pharmacyId._id || req.user.pharmacyId;
+    const invFilter = { pharmacyId };
+
+    if (status) {
+      invFilter.status = status;
+    }
+
+    if (expiry) {
+      const now = new Date();
+      if (expiry === 'expired') {
+        invFilter.expiryDate = { $lt: now };
+      } else if (expiry === 'expiringSoon') {
+        const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+        invFilter.expiryDate = { $gte: now, $lte: thirtyDaysFromNow };
+      } else if (expiry === 'valid') {
+        invFilter.expiryDate = { $gt: now };
+      }
+    }
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 100);
+    const skip = (pageNum - 1) * limitNum;
+
+    let sortObj = { updatedAt: -1 };
+    if (sortBy === 'quantity') {
+      sortObj = { quantity: order === 'asc' ? 1 : -1 };
+    } else if (sortBy === 'expiryDate') {
+      sortObj = { expiryDate: order === 'asc' ? 1 : -1 };
+    } else if (sortBy === 'createdAt') {
+      sortObj = { createdAt: order === 'asc' ? 1 : -1 };
+    }
+
+    let items = await Inventory.find(invFilter)
+      .sort(sortObj)
+      .populate('medicineId')
+      .lean();
+
+    // In-memory search & category filter (since fields live on MedicineCatalog)
+    if (search) {
+      const s = search.toLowerCase();
+      items = items.filter(
+        (it) =>
+          it.medicineId?.name?.toLowerCase().includes(s) ||
+          it.medicineId?.composition?.toLowerCase().includes(s) ||
+          it.medicineId?.manufacturer?.toLowerCase().includes(s) ||
+          it.batchNumber?.toLowerCase().includes(s)
+      );
+    }
+
+    if (category) {
+      items = items.filter(
+        (it) => it.medicineId?.category?.toLowerCase() === category.toLowerCase()
+      );
+    }
+
+    if (sortBy === 'medicineName') {
+      items.sort((a, b) => {
+        const nameA = a.medicineId?.name || '';
+        const nameB = b.medicineId?.name || '';
+        return order === 'asc' ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+      });
+    }
+
+    const total = items.length;
+    const paginatedItems = items.slice(skip, skip + limitNum);
+
+    const mapped = paginatedItems.map((inv) => ({
+      _id: inv._id,
+      medicineName: inv.medicineId?.name || 'Unknown',
+      genericName: inv.medicineId?.composition || inv.medicineId?.genericName || '',
+      manufacturer: inv.medicineId?.manufacturer || '',
+      category: inv.medicineId?.category || 'General',
+      batchNumber: inv.batchNumber,
+      quantity: inv.quantity,
+      sellingPrice: inv.sellingPrice,
+      buyingPrice: inv.purchasePrice,
+      purchasePrice: inv.purchasePrice,
+      expiryDate: inv.expiryDate,
+      status: inv.status,
+      imageUrl: inv.medicineId?.imageUrl || null,
+      medicineId: inv.medicineId?._id,
+      createdAt: inv.createdAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        medicines: mapped,
+        pagination: {
+          total,
+          page: pageNum,
+          limit: limitNum,
+          totalPages: Math.ceil(total / limitNum) || 1,
+        },
+      },
+    });
+  }
+
+  // Legacy store-based Admins
   if (req.user.role === 'Admin') {
     if (!req.user.store) {
       return res.status(200).json({
@@ -231,9 +394,39 @@ const getMedicines = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const getMedicineById = asyncHandler(async (req, res) => {
-  const medicine = await Medicine.findById(req.params.id)
+  let medicine = await Medicine.findById(req.params.id)
     .populate('createdBy', 'fullName email role')
     .populate('store', 'name address');
+
+  if (!medicine) {
+    // Check if it's an Inventory item (pharmacy architecture)
+    const inv = await Inventory.findById(req.params.id)
+      .populate('pharmacyId', 'name city state')
+      .populate('medicineId');
+    if (inv) {
+      medicine = {
+        _id: inv._id,
+        medicineName: inv.medicineId?.name || 'Unknown',
+        genericName: inv.medicineId?.composition || inv.medicineId?.genericName || '',
+        manufacturer: inv.medicineId?.manufacturer || '',
+        category: inv.medicineId?.category || 'General',
+        batchNumber: inv.batchNumber,
+        quantity: inv.quantity,
+        buyingPrice: inv.purchasePrice,
+        purchasePrice: inv.purchasePrice,
+        sellingPrice: inv.sellingPrice,
+        expiryDate: inv.expiryDate,
+        status: inv.status,
+        description: inv.medicineId?.description || '',
+        dosageForm: inv.medicineId?.dosageForm || 'Tablet',
+        imageUrl: inv.medicineId?.imageUrl || null,
+        reorderLevel: inv.minimumStock,
+        supplier: inv.supplier || '',
+        createdAt: inv.createdAt,
+        updatedAt: inv.updatedAt,
+      };
+    }
+  }
 
   if (!medicine) {
     throw new ApiError(404, 'Medicine not found');
@@ -251,9 +444,40 @@ const getMedicineById = asyncHandler(async (req, res) => {
  * @access  Private (Admin)
  */
 const updateMedicine = asyncHandler(async (req, res) => {
-  const medicine = await Medicine.findById(req.params.id);
+  let medicine = await Medicine.findById(req.params.id);
 
   if (!medicine) {
+    // Check if it's an Inventory item
+    const inv = await Inventory.findById(req.params.id);
+    if (inv) {
+      if (req.user.pharmacyId) {
+        const userPhId = req.user.pharmacyId._id || req.user.pharmacyId;
+        if (!inv.pharmacyId.equals(userPhId)) {
+          throw new ApiError(403, 'You can only manage medicines in your pharmacy');
+        }
+      }
+      const { quantity, batchNumber, purchasePrice, buyingPrice, sellingPrice, expiryDate } = req.body;
+      if (quantity != null) inv.quantity = Number(quantity);
+      if (batchNumber != null) inv.batchNumber = batchNumber;
+      if (purchasePrice != null || buyingPrice != null) inv.purchasePrice = Number(purchasePrice || buyingPrice);
+      if (sellingPrice != null) inv.sellingPrice = Number(sellingPrice);
+      if (expiryDate != null) inv.expiryDate = new Date(expiryDate);
+      await inv.save();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Medicine updated successfully',
+        data: {
+          medicine: {
+            _id: inv._id,
+            quantity: inv.quantity,
+            batchNumber: inv.batchNumber,
+            sellingPrice: inv.sellingPrice,
+            status: inv.status,
+          },
+        },
+      });
+    }
     throw new ApiError(404, 'Medicine not found');
   }
 
@@ -286,6 +510,20 @@ const deleteMedicine = asyncHandler(async (req, res) => {
   const medicine = await Medicine.findById(req.params.id);
 
   if (!medicine) {
+    const inv = await Inventory.findById(req.params.id);
+    if (inv) {
+      if (req.user.pharmacyId) {
+        const userPhId = req.user.pharmacyId._id || req.user.pharmacyId;
+        if (!inv.pharmacyId.equals(userPhId)) {
+          throw new ApiError(403, 'You can only manage medicines in your pharmacy');
+        }
+      }
+      await inv.deleteOne();
+      return res.status(200).json({
+        success: true,
+        message: 'Medicine deleted successfully',
+      });
+    }
     throw new ApiError(404, 'Medicine not found');
   }
 
@@ -307,8 +545,33 @@ const deleteMedicine = asyncHandler(async (req, res) => {
  * @access  Private
  */
 const getDashboardStats = asyncHandler(async (req, res) => {
-  // A pharmacy-scoped admin has no legacy store, so has no legacy medicines -
-  // return zeroed stats rather than erroring on their first page after login.
+  // Pharmacy-scoped admin stats aggregation from Inventory
+  if (req.user.role === 'Admin' && req.user.pharmacyId && !req.user.store) {
+    const pharmacyId = req.user.pharmacyId._id || req.user.pharmacyId;
+    const now = new Date();
+
+    const [totalMedicines, lowStock, expired, inventoryItems] = await Promise.all([
+      Inventory.countDocuments({ pharmacyId }),
+      Inventory.countDocuments({ pharmacyId, status: 'Low Stock' }),
+      Inventory.countDocuments({ pharmacyId, expiryDate: { $lt: now } }),
+      Inventory.find({ pharmacyId }).populate('medicineId', 'category').lean(),
+    ]);
+
+    const categories = new Set(
+      inventoryItems.map((i) => i.medicineId?.category).filter(Boolean)
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        totalMedicines,
+        lowStock,
+        expired,
+        totalCategories: categories.size,
+      },
+    });
+  }
+
   if (req.user.role === 'Admin' && !req.user.store) {
     return res.status(200).json({
       success: true,

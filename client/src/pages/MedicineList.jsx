@@ -8,8 +8,11 @@ import EmptyState from '../components/EmptyState';
 import ConfirmModal from '../components/ConfirmModal';
 import Pagination from '../components/Pagination';
 import { stockTint } from '../utils/stockStatus';
+import useAuth from '../hooks/useAuth';
 
 const MedicineList = () => {
+  const { user } = useAuth();
+  const isPharmacyAdmin = !!user?.pharmacyId;
   const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -93,11 +96,11 @@ const MedicineList = () => {
             <span>Import CSV</span>
           </Link>
           <Link
-            to="/medicines/add"
+            to={isPharmacyAdmin ? '/inventory/add-stock' : '/medicines/add'}
             className="flex items-center justify-center gap-2 bg-brandPrimary hover:bg-brandPrimaryHover text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-lg shadow-brandPrimary/20 transition-all"
           >
             <FiPlus size={18} />
-            <span>Add Medicine</span>
+            <span>{isPharmacyAdmin ? 'Add Stock' : 'Add Medicine'}</span>
           </Link>
         </div>
       </div>
@@ -205,18 +208,18 @@ const MedicineList = () => {
                 {medicines.map((item) => (
                   <tr key={item._id} className="hover:bg-primary-50/50 transition-colors">
                     <td className="py-4 px-6">
-                      <div className="font-semibold text-slate-900">{item.medicineName}</div>
+                      <div className="font-semibold text-slate-900">{item.medicineName || item.medicineId?.name || '—'}</div>
                       <div className="text-xs text-slate-400">
-                        {item.genericName || item.manufacturer}
+                        {item.genericName || item.medicineId?.composition || item.manufacturer || '—'}
                       </div>
                     </td>
                     <td className="py-4 px-4">
                       <span className="px-2.5 py-1 rounded-xl text-xs font-medium bg-slate-100 text-slate-600">
-                        {item.category}
+                        {item.category || item.medicineId?.category || 'General'}
                       </span>
                     </td>
                     <td className="py-4 px-4 text-xs font-mono text-slate-500">
-                      {item.batchNumber}
+                      {item.batchNumber || '—'}
                     </td>
                     <td className="py-4 px-4 font-semibold text-slate-800">
                       {item.quantity}
