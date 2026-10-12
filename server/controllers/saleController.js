@@ -356,14 +356,17 @@ const getSalesAnalytics = asyncHandler(async (req, res) => {
         totalRevenue: 0,
         totalCost: 0,
         totalProfit: 0,
+        totalTax: 0,
         profitMargin: 0,
+        avgOrderValue: 0,
         trend: [],
         topMedicines: [],
+        paymentMethods: [],
       }
     });
   }
 
-  const { startDate, endDate } = req.query;
+  const { startDate, endDate, granularity } = req.query;
   const matchFilter = { ...filter };
 
   if (startDate || endDate) {
@@ -382,6 +385,7 @@ const getSalesAnalytics = asyncHandler(async (req, res) => {
         revenue: { $first: '$totalAmount' },
         cost: { $first: '$totalCost' },
         profit: { $first: '$profit' },
+        tax: { $first: '$tax' },
         unitsSold: { $sum: '$items.quantity' },
       }
     },
@@ -393,6 +397,7 @@ const getSalesAnalytics = asyncHandler(async (req, res) => {
         totalRevenue: { $sum: '$revenue' },
         totalCost: { $sum: '$cost' },
         totalProfit: { $sum: '$profit' },
+        totalTax: { $sum: '$tax' },
       }
     }
   ]);
@@ -403,19 +408,41 @@ const getSalesAnalytics = asyncHandler(async (req, res) => {
     totalRevenue: 0,
     totalCost: 0,
     totalProfit: 0,
+    totalTax: 0,
   };
 
   const profitMargin = stats.totalRevenue > 0 ? (stats.totalProfit / stats.totalRevenue) * 100 : 0;
+  const avgOrderValue = stats.totalTransactions > 0 ? Math.round(stats.totalRevenue / stats.totalTransactions) : 0;
 
-  // 2. Trend (group by day)
+  // 2. Trend (group by day or hour)
+  const isHourly = granularity === 'hourly';
+  const dateFormat = isHourly ? '%Y-%m-%d %H:00' : '%Y-%m-%d';
+
   const trendAgg = await Sale.aggregate([
     { $match: matchFilter },
+    { $unwind: '$items' },
     {
       $group: {
-        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-        revenue: { $sum: '$totalAmount' },
-        cost: { $sum: '$totalCost' },
-        profit: { $sum: '$profit' }
+        _id: {
+          saleId: '$_id',
+          date: { $dateToString: { format: dateFormat, date: '$createdAt' } }
+        },
+        saleRevenue: { $first: '$totalAmount' },
+        saleCost: { $first: '$totalCost' },
+        saleProfit: { $first: '$profit' },
+        saleTax: { $first: '$tax' },
+        saleUnits: { $sum: '$items.quantity' }
+      }
+    },
+    {
+      $group: {
+        _id: '$_id.date',
+        revenue: { $sum: '$saleRevenue' },
+        cost: { $sum: '$saleCost' },
+        profit: { $sum: '$saleProfit' },
+        tax: { $sum: '$saleTax' },
+        transactions: { $sum: 1 },
+        unitsSold: { $sum: '$saleUnits' }
       }
     },
     { $sort: { _id: 1 } }
@@ -425,10 +452,33 @@ const getSalesAnalytics = asyncHandler(async (req, res) => {
     date: t._id,
     revenue: t.revenue,
     cost: t.cost,
-    profit: t.profit
+    profit: t.profit,
+    tax: t.tax || 0,
+    transactions: t.transactions || 0,
+    unitsSold: t.unitsSold || 0,
   }));
 
-  // 3. Top selling medicines
+  // 3. Payment Method breakdown
+  const paymentMethodAgg = await Sale.aggregate([
+    { $match: matchFilter },
+    {
+      $group: {
+        _id: '$paymentMethod',
+        revenue: { $sum: '$totalAmount' },
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { revenue: -1 } }
+  ]);
+
+  const paymentMethods = paymentMethodAgg.map(p => ({
+    method: p._id || 'Unknown',
+    revenue: p.revenue,
+    count: p.count,
+    percentage: stats.totalRevenue > 0 ? Math.round((p.revenue / stats.totalRevenue) * 100) : 0
+  }));
+
+  // 4. Top selling medicines
   const topMedicinesAgg = await Sale.aggregate([
     { $match: matchFilter },
     { $unwind: '$items' },
@@ -458,8 +508,10 @@ const getSalesAnalytics = asyncHandler(async (req, res) => {
     data: {
       ...stats,
       profitMargin,
+      avgOrderValue,
       trend,
-      topMedicines: topMedicinesAgg
+      topMedicines: topMedicinesAgg,
+      paymentMethods
     }
   });
 });
