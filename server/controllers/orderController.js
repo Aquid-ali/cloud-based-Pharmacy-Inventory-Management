@@ -246,6 +246,10 @@ const getOrderById = asyncHandler(async (req, res) => {
  * @desc    Update an order's fulfillment status
  * @route   PATCH /api/orders/:id/status
  * @access  Private (Admin, own store/pharmacy only)
+ *
+ * Permitted transitions (forward-only, no skipping):
+ *   Placed → Processing → Out for Delivery → Delivered
+ * Cancellation from any non-terminal state is also permitted.
  */
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id);
@@ -254,6 +258,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new ApiError(404, 'Order not found');
   }
 
+  // Authorization: must belong to the admin's own store or pharmacy
   const isStoreAdmin = !!req.user.store && !!order.store && order.store.equals(req.user.store._id);
   const isPharmacyAdmin =
     !!req.user.pharmacyId &&
@@ -261,21 +266,54 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     order.pharmacy.equals(req.user.pharmacyId._id || req.user.pharmacyId);
 
   if (!isStoreAdmin && !isPharmacyAdmin) {
-    throw new ApiError(403, 'You can only manage orders belonging to your own store');
+    throw new ApiError(403, 'You can only manage orders belonging to your own store or pharmacy');
   }
 
-  order.status = req.body.status;
+  // Validate permitted transitions
+  const TRANSITIONS = {
+    Placed: ['Processing', 'Cancelled'],
+    Processing: ['Out for Delivery', 'Cancelled'],
+    'Out for Delivery': ['Delivered', 'Cancelled'],
+    Delivered: [],
+    Cancelled: [],
+  };
+
+  const allowedNext = TRANSITIONS[order.status] || [];
+  const newStatus = req.body.status;
+
+  if (!allowedNext.includes(newStatus)) {
+    throw new ApiError(
+      400,
+      `Cannot transition from '${order.status}' to '${newStatus}'. ` +
+        (allowedNext.length
+          ? `Allowed next status: ${allowedNext.join(', ')}.`
+          : 'This order is already in a terminal state.')
+    );
+  }
+
+  // Apply the transition
+  order.status = newStatus;
+
+  // Append to statusHistory (back-fill array for orders that pre-date this field)
+  if (!order.statusHistory) order.statusHistory = [];
+  order.statusHistory.push({
+    status: newStatus,
+    changedAt: new Date(),
+    changedBy: req.user._id,
+  });
+
   await order.save();
 
   const populatedOrder = await order.populate([
     { path: 'store' },
     { path: 'pharmacy' },
     { path: 'user', select: 'fullName email phone' },
+    { path: 'statusHistory.changedBy', select: 'fullName' },
   ]);
 
   res.status(200).json({
     success: true,
-    message: 'Order status updated',
+    message: `Order status updated to '${newStatus}'`,
     data: { order: populatedOrder },
   });
 });

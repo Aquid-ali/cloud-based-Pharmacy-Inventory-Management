@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+// One entry per status change; seeded with 'Placed' on order creation.
+const statusHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      enum: ['Placed', 'Processing', 'Out for Delivery', 'Delivered', 'Cancelled'],
+      required: true,
+    },
+    changedAt: { type: Date, default: Date.now },
+    changedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  },
+  { _id: false }
+);
+
 const orderItemSchema = new mongoose.Schema(
   {
     // Exactly one of these is set, matching which path created the order:
@@ -96,6 +110,10 @@ const orderSchema = new mongoose.Schema(
       enum: ['Placed', 'Processing', 'Out for Delivery', 'Delivered', 'Cancelled'],
       default: 'Placed',
     },
+    statusHistory: {
+      type: [statusHistorySchema],
+      default: [],
+    },
     saleId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Sale',
@@ -109,5 +127,16 @@ orderSchema.methods.toJSON = function () {
   delete obj.__v;
   return obj;
 };
+
+/**
+ * Seed the initial 'Placed' history entry when a brand-new order is saved
+ * for the first time. This runs only on the very first save (isNew guard).
+ */
+orderSchema.pre('save', function (next) {
+  if (this.isNew && this.statusHistory.length === 0) {
+    this.statusHistory.push({ status: 'Placed', changedAt: this.createdAt || new Date() });
+  }
+  next();
+});
 
 module.exports = mongoose.model('Order', orderSchema);

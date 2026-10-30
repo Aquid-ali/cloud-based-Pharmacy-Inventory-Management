@@ -51,25 +51,38 @@ const OrderDetail = () => {
       </Link>
 
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <FiCheckCircle size={22} />
+        {(() => {
+          const STATUS_META = {
+            Placed:           { icon: FiCheckCircle, iconBg: 'bg-blue-50', iconColor: 'text-blue-600',    title: 'Order placed' },
+            Processing:       { icon: FiCheckCircle, iconBg: 'bg-amber-50', iconColor: 'text-amber-600',  title: 'Order in processing' },
+            'Out for Delivery':{ icon: FiTruck,       iconBg: 'bg-indigo-50',iconColor: 'text-indigo-600', title: 'Out for delivery' },
+            Delivered:        { icon: FiCheckCircle, iconBg: 'bg-emerald-50',iconColor: 'text-emerald-600',title: 'Order delivered' },
+            Cancelled:        { icon: FiCheckCircle, iconBg: 'bg-rose-50',  iconColor: 'text-rose-600',   title: 'Order cancelled' },
+          };
+          const meta = STATUS_META[order.status] || STATUS_META.Placed;
+          const Icon = meta.icon;
+          return (
+            <div className="flex items-start justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className={'w-11 h-11 rounded-2xl flex items-center justify-center ' + meta.iconBg + ' ' + meta.iconColor}>
+                  <Icon size={22} />
+                </div>
+                <div>
+                  <h1 className="text-lg font-bold font-display text-ink">{meta.title}</h1>
+                  <p className="text-xs text-ink-faint">
+                    #{order._id.slice(-8).toUpperCase()} · {new Date(order.createdAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+              <span className={'shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border ' + (statusTint[order.status] || '')}>
+                {order.status}
+              </span>
             </div>
-            <div>
-              <h1 className="text-lg font-bold font-display text-ink">Order placed</h1>
-              <p className="text-xs text-ink-faint">
-                #{order._id.slice(-8).toUpperCase()} · {new Date(order.createdAt).toLocaleString()}
-              </p>
-            </div>
-          </div>
-          <span className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border ${statusTint[order.status] || ''}`}>
-            {order.status}
-          </span>
-        </div>
+          );
+        })()}
 
         <div className="mb-6 pb-6 border-b border-slate-100 overflow-x-auto">
-          <OrderTimeline status={order.status} />
+          <OrderTimeline status={order.status} statusHistory={order.statusHistory} />
         </div>
 
         {/* Items */}
