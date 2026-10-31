@@ -267,7 +267,7 @@ const PharmacyProfile = () => {
           <p className="text-[11px] text-slate-400 mt-1.5">
             {manualLocation
               ? 'Pin manually adjusted — this exact position will be saved (no re-geocoding) when you save.'
-              : 'Saving a changed address automatically re-geocodes it. You can also drag the pin to correct minor inaccuracies.'}
+              : 'No location yet? Click anywhere on the map to place a pin, or save your address to auto-geocode it. You can also drag the pin to correct minor inaccuracies.'}
           </p>
         </div>
 
